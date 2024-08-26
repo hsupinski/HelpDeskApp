@@ -1,0 +1,24 @@
+﻿@model HelpDeskApp.Models.ViewModels.ChatViewModel
+
+<div id="chat">
+    <div id="messagesList">
+        @if(Model.Messages != null)
+        {
+            @foreach (var message in Model.Messages)
+            {
+                <div>@message.Sender.FullName: @message.Content</div>
+            }            
+        }
+    </div>
+
+    <input type="hidden" id="chatId" value="@Model.ChatId" />
+    <input type="hidden" id="userId" value="@Model.UserId" />
+
+    <input type="text" id="messageInput" />
+    <button id="sendMessageButton">Send</button>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script src="~/js/chat.js"></script>
+}
