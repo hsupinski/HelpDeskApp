@@ -27,8 +27,6 @@ namespace HelpDeskApp.Services
 
         public async Task<List<string>> GetAllRolesAsync()
         {
-            //return await _userManager.Roles.Select(r => r.Name).ToListAsync();
-
             List<string> userRoleList = ["User", "Consultant", "Department Head"];
 
             return userRoleList;

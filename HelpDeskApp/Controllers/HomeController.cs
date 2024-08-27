@@ -11,11 +11,13 @@ namespace HelpDeskApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IChatService _chatService;
+        private readonly ITopicService _topicService;
 
-        public HomeController(ILogger<HomeController> logger, IChatService chatService)
+        public HomeController(ILogger<HomeController> logger, IChatService chatService, ITopicService topicService)
         {
             _logger = logger;
             _chatService = chatService;
+            _topicService = topicService;
         }
 
         public IActionResult Index()
@@ -35,7 +37,7 @@ namespace HelpDeskApp.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Chat()
+        public async Task<IActionResult> Chat(int? topicId = null)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 
@@ -43,7 +45,12 @@ namespace HelpDeskApp.Controllers
 
             if(chat == null)
             {
-                chat = await _chatService.CreateChatAsync(userId);
+                if(!topicId.HasValue)
+                {
+                    return RedirectToAction("ChooseTopic");
+                }
+
+                chat = await _chatService.CreateChatAsync(userId, topicId.Value);
             }
 
             var model = await _chatService.CreateChatViewModel(chat, userId);
@@ -51,6 +58,18 @@ namespace HelpDeskApp.Controllers
             Console.WriteLine($"Chat ID: {model.ChatId}");
 
             return View(model);
+        }
+
+        public async Task<IActionResult> ChooseTopic()
+        {
+            var topics = await _topicService.GetAllAsync();
+            return View(topics);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChooseTopic(int topicId)
+        {
+            return RedirectToAction("Chat", new { topicId });
         }
 
         [Authorize]

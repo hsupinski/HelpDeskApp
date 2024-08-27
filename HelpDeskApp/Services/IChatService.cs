@@ -4,7 +4,7 @@ namespace HelpDeskApp.Services
 {
     public interface IChatService
     {
-        Task<Chat> CreateChatAsync(string userId);
+        Task<Chat> CreateChatAsync(string userId, int topicId);
         Task<Chat> GetActiveChatByUserId(string userId);
         Task<ChatViewModel> CreateChatViewModel(Chat chat, string userId);
         Task LeaveChatAsync(string userId);

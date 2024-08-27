@@ -47,7 +47,8 @@ namespace HelpDeskApp.Controllers
                 return NotFound();
             }
 
-            ViewBag.Departments = await _departmentService.GetAllAsync();
+            var departments = await _departmentService.GetAllAsync();
+            ViewBag.Departments = new SelectList(departments, "Id", "Name");
             return View(topic);
         }
 

@@ -68,9 +68,19 @@ namespace HelpDeskApp.Controllers
             {
                 return NotFound();
             }
+            
+            var consultantList = await _accountService.GetUsersInRoleAsync("Consultant");
+            var departmentHeadList = await _accountService.GetUsersInRoleAsync("Department Head");
 
-            ViewBag.Users = await _accountService.GetUsersInRoleAsync("Consultant");
-            ViewBag.Users.AddRange(await _accountService.GetUsersInRoleAsync("Department Head"));
+            var users = new List<IdentityUser>();
+            
+            users.AddRange(consultantList);
+            users.AddRange(departmentHeadList);
+
+            users = users.Distinct().ToList(); // remove duplicates
+
+            ViewBag.Users = users;
+
             return View(department);
         }
 

@@ -9,16 +9,20 @@ namespace HelpDeskApp.Services
     {
         private readonly IAccountService _accountService;
         private readonly IChatRepository _chatRepository;
-        public ChatService(IChatRepository chatRepository, IAccountService accountService)
+        private readonly ITopicService _topicService;
+        public ChatService(IChatRepository chatRepository, IAccountService accountService, ITopicService topicService)
         {
             _chatRepository = chatRepository;
             _accountService = accountService;
+            _topicService = topicService;
         }
-        public async Task<Chat> CreateChatAsync(string userId)
+        public async Task<Chat> CreateChatAsync(string userId, int topicId)
         {
+            var topic = await _topicService.GetByIdAsync(topicId);
+
             var chat = new Chat
             {
-                Topic = "New Chat", // TODO: Implement topic
+                Topic = topic.Name,
                 StartTime = DateTime.Now,
                 EndTime = null,
                 Messages = new List<Message>(),
