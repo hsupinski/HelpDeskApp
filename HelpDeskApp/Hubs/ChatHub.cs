@@ -1,32 +1,37 @@
 ﻿using HelpDeskApp.Data;
 using HelpDeskApp.Models.Domain;
+using HelpDeskApp.Services;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace HelpDeskApp.Hubs
 {
     public class ChatHub : Hub
     {
         private readonly HelpDeskDbContext _context;
+        private readonly IAccountService _accountService;
 
-        public ChatHub(HelpDeskDbContext helpDeskDbContext)
+        public ChatHub(HelpDeskDbContext helpDeskDbContext, IAccountService accountService)
         {
             _context = helpDeskDbContext;
+            _accountService = accountService;
         }
 
-        public async Task JoinChat(int chatId)
+        public async Task JoinChat(string chatId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, chatId.ToString());
+            await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
+            await Clients.Group(chatId).SendAsync("UserJoined", Context.UserIdentifier);
         }
 
-        public async Task SendMessage(int chatId, string message, string userId)
+        public async Task SendMessage(string chatId, string message, string userId)
         {
             Console.WriteLine($"SendMessage called with chatId: {chatId}, message: {message}, userId: {userId}");
 
             try
             {
                 Console.WriteLine($"SendMessage called with chatId: {chatId}, message: {message}, userId: {userId}");
-                var chat = await _context.Chats.FindAsync(chatId);
+                int chatIdAsInt = Int32.Parse(chatId);
+
+                var chat = await _context.Chats.FindAsync(chatIdAsInt);
 
                 if (chat == null)
                 {
@@ -34,11 +39,14 @@ namespace HelpDeskApp.Hubs
                     return;
                 }
 
+                var username = await _accountService.GetUsernameById(userId);
+
                 var newMessage = new Message
                 {
                     Content = message,
                     TimeSent = DateTime.Now,
                     SenderId = userId,
+                    SenderUsername = username,
                     Chat = chat
                 };
 
@@ -47,20 +55,21 @@ namespace HelpDeskApp.Hubs
 
                 Console.WriteLine("Message saved to database successfully.");
 
-                await Clients.Group(chatId.ToString()).SendAsync("ReceiveMessage", userId, message);
+                await Clients.Group(chatIdAsInt.ToString()).SendAsync("ReceiveMessage", userId, message, username);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in SendMessage: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
-                throw;
+                throw new HubException($"Error sending message: {ex.Message}");
             }
 
         }
 
-        public async Task LeaveChat(int chatId)
+        public async Task LeaveChat(string chatId)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId.ToString());
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
+            await Clients.Group(chatId).SendAsync("UserLeft", Context.UserIdentifier);
         }
     }
 }

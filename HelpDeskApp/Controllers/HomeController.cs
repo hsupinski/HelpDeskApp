@@ -43,9 +43,43 @@ namespace HelpDeskApp.Controllers
             else
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var model = await _chatService.CreateChatAsync(userId);
+                
+                var chat = await _chatService.GetActiveChatByUserId(userId);
+
+                if(chat == null)
+                {
+                    chat = await _chatService.CreateChatAsync(userId);
+                }
+
+                var model = await _chatService.CreateChatViewModel(chat, userId);
+
+                Console.WriteLine($"Chat ID: {model.ChatId}");
 
                 return View(model);
+            }
+        }
+
+        public async Task<IActionResult> LeaveChat()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index");
+            }
+
+            else
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var chat = await _chatService.GetActiveChatByUserId(userId);
+
+                if (chat == null)
+                {
+                    return RedirectToAction("Index");
+                }
+
+                await _chatService.LeaveChatAsync(userId);
+
+                return RedirectToAction("Index");
             }
         }
     }

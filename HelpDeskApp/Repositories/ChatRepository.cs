@@ -19,11 +19,28 @@ namespace HelpDeskApp.Repositories
             return chat;
         }
 
+        public async Task<Chat> GetActiveChatByUserId(string userId)
+        {
+            return await _context.Chats
+                .Include(c => c.Messages)
+                .FirstOrDefaultAsync(c => c.EndTime == null && c.Messages.Any(m => m.SenderId == userId));
+        }
+
         public async Task<List<Message>> GetAllMessagesAsync(int id)
         {
             return await _context.Messages
                 .Where(m => m.ChatId == id)
                 .ToListAsync();
+        }
+
+        public async Task LeaveChatAsync(string userId)
+        {
+            var chat = await GetActiveChatByUserId(userId);
+            if (chat != null)
+            {
+                chat.EndTime = DateTime.Now;
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

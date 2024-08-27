@@ -13,6 +13,12 @@ namespace HelpDeskApp.Services
             _signInManager = signInManager;
             _userManager = userManager;
         }
+
+        public async Task<string> GetUsernameById(string userId)
+        {
+            return (await _userManager.FindByIdAsync(userId)).UserName;
+        }
+
         public async Task<SignInResult> LoginUserAsync(LoginViewModel model)
         {
             return await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, false);

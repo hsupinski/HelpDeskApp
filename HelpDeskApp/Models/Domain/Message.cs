@@ -6,7 +6,7 @@
         public string Content { get; set; }
         public DateTime TimeSent { get; set; }
         public string SenderId { get; set; }
-        public ApplicationUser Sender { get; set; }
+        public string SenderUsername { get; set; }
         public int ChatId { get; set; }
         public Chat Chat { get; set; }
     }

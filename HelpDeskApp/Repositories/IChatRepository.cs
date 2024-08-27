@@ -6,5 +6,7 @@ namespace HelpDeskApp.Repositories
     {
         Task<List<Message>> GetAllMessagesAsync(int id);
         Task<Chat> CreateChatAsync(Chat chat);
+        Task<Chat> GetActiveChatByUserId(string userId);
+        Task LeaveChatAsync(string userId);
     }
 }
