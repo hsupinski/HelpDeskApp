@@ -7,7 +7,7 @@
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public bool IsSaved { get; set; } = true; // Default value is true
-        public IEnumerable<Message> Messages { get; set; }
-        public IEnumerable<ChatParticipation> Participants { get; set; }
+        public List<Message> Messages { get; set; }
+        public List<ChatParticipation> Participants { get; set; }
     }
 }

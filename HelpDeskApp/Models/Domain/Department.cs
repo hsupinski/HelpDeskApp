@@ -4,8 +4,9 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public IEnumerable<Chat> Chats { get; set; }
-        public IEnumerable<string> ConsultantId { get; set; }
-        public IEnumerable<Topic> Topics { get; set; }
+        public List<Chat>? Chats { get; set; }
+        public List<string>? ConsultantId { get; set; }
+        public string DepartmentHeadId { get; set; }
+        public List<Topic>? Topics { get; set; }
     }
 }

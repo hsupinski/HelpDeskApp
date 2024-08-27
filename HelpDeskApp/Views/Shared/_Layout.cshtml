@@ -39,6 +39,33 @@
                            asp-controller="Home"
                            asp-action="Chat">New Chat</a>
 
+                        @if (User.IsInRole("Admin") || (User.IsInRole("DepartmentHead") || (User.IsInRole("Consultant"))))
+                        {
+                            <a class="btn me-3 bg-light text-dark"
+                               asp-area=""
+                               asp-controller="HelpDesk"
+                               asp-action="Panel">HelpDesk Panel</a>
+                        }
+
+                        @if(User.IsInRole("Admin"))
+                        {
+                            <a class="btn me-3 bg-light text-dark"
+                               asp-area=""
+                               asp-controller="Admin"
+                               asp-action="ManageUserRoles">Manage users</a>
+
+                            <a class="btn me-3 bg-light text-dark"
+                               asp-area=""
+                               asp-controller="Topic"
+                               asp-action="">Manage topics</a>
+
+                            <a class="btn me-3 bg-light text-dark"
+                               asp-area=""
+                               asp-controller="Department"
+                               asp-action="">Manage departments</a>
+                        }
+
+
                         <a class="btn me-3 bg-light text-dark"
                            asp-area=""
                            asp-controller="Account"

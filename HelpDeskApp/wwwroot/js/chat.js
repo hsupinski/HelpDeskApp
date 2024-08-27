@@ -39,7 +39,7 @@ document.getElementById("leaveChatButton").addEventListener("click", () => {
     connection.invoke("LeaveChat", chatId)
         .then(() => {
             console.log("Left chat successfully");
-            window.location.href = "/"; // Redirect to home page
+            window.location.href = "/Home/LeaveChat";
         })
         .catch(err => console.error("Error leaving chat:", err.toString()));
 });

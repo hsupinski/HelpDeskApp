@@ -28,6 +28,8 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<ITopicService, TopicService>();
 
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 

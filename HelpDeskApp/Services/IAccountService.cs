@@ -9,5 +9,12 @@ namespace HelpDeskApp.Services
         Task<SignInResult> LoginUserAsync(LoginViewModel model);
         Task<string> GetUsernameById(string userId); 
         Task LogoutUserAsync();
+        Task<List<IdentityUser>> GetAllAsync();
+        Task<List<IdentityUser>> GetUsersInRoleAsync(string roleName);
+        Task<List<string>> GetUserRolesAsync(IdentityUser user);
+        Task<List<string>> GetAllRolesAsync();
+        Task<IdentityUser> GetUserByIdAsync(string userId);
+        Task AddUserToRolesAsync(IdentityUser user, List<string> rolesToAdd);
+        Task RemoveUserFromRolesAsync(IdentityUser user, List<string> rolesToRemove);
     }
 }

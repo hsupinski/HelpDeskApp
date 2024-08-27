@@ -1,5 +1,6 @@
 using HelpDeskApp.Models;
 using HelpDeskApp.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -33,54 +34,43 @@ namespace HelpDeskApp.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        [Authorize]
         public async Task<IActionResult> Chat()
         {
-            if(!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Index");
-            }
-
-            else
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 
-                var chat = await _chatService.GetActiveChatByUserId(userId);
+            var chat = await _chatService.GetActiveChatByUserId(userId);
 
-                if(chat == null)
-                {
-                    chat = await _chatService.CreateChatAsync(userId);
-                }
-
-                var model = await _chatService.CreateChatViewModel(chat, userId);
-
-                Console.WriteLine($"Chat ID: {model.ChatId}");
-
-                return View(model);
+            if(chat == null)
+            {
+                chat = await _chatService.CreateChatAsync(userId);
             }
+
+            var model = await _chatService.CreateChatViewModel(chat, userId);
+
+            Console.WriteLine($"Chat ID: {model.ChatId}");
+
+            return View(model);
         }
 
+        [Authorize]
         public async Task<IActionResult> LeaveChat()
         {
-            if (!User.Identity.IsAuthenticated)
+            Console.WriteLine("LeaveChat called.");
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var chat = await _chatService.GetActiveChatByUserId(userId);
+
+            if (chat == null)
             {
                 return RedirectToAction("Index");
             }
 
-            else
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _chatService.LeaveChatAsync(userId);
 
-                var chat = await _chatService.GetActiveChatByUserId(userId);
-
-                if (chat == null)
-                {
-                    return RedirectToAction("Index");
-                }
-
-                await _chatService.LeaveChatAsync(userId);
-
-                return RedirectToAction("Index");
-            }
+            return RedirectToAction("Index");
+            
         }
     }
 }
