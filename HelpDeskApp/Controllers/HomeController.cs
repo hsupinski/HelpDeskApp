@@ -13,11 +13,13 @@ namespace HelpDeskApp.Controllers
 
         private readonly IChatService _chatService;
         private readonly ITopicService _topicService;
+        private readonly IAccountService _accountService;
 
-        public HomeController(IChatService chatService, ITopicService topicService)
+        public HomeController(IChatService chatService, ITopicService topicService, IAccountService accountService)
         {
             _chatService = chatService;
             _topicService = topicService;
+            _accountService = accountService;
         }
 
         public async Task<IActionResult> Index()
@@ -71,6 +73,12 @@ namespace HelpDeskApp.Controllers
             }
 
             var model = await _chatService.CreateChatViewModel(chat, userId);
+
+            foreach(var username in model.UsersInChatroom)
+            {
+                Console.WriteLine(username);
+            }
+
             return View(model);
         }
 
@@ -79,6 +87,7 @@ namespace HelpDeskApp.Controllers
             Console.WriteLine("LeaveChat called.");
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
 
             var chat = await _chatService.GetActiveChatByUserId(userId);
 
@@ -87,10 +96,55 @@ namespace HelpDeskApp.Controllers
                 return RedirectToAction("Index");
             }
 
-            await _chatService.LeaveChatAsync(userId);
+            // If user leaves the chatroom, close it
+
+            if (userRole == "User")
+            {
+                await _chatService.LeaveChatAsync(userId);
+                await _chatService.KillChatAsync(userId, false);
+            }
+
+            else if (userRole == "Consultant")
+            {
+                var userIds = await _chatService.GetUsersInChat(chat.Id);
+
+                // Consultant is not allowed to leave the user alone,
+                // they can only leave if there is another non-admin consultant in the chat
+
+                int count = 0;
+
+                foreach (var _userId in userIds)
+                {
+                    var user = await _accountService.GetUserByIdAsync(_userId);
+                    var roles = await _accountService.GetUserRolesAsync(user);
+
+                    if (!roles.Contains("Admin") && roles.Contains("Consultant"))
+                    {
+                        count++;
+                    }
+                }
+
+                if (count > 1)
+                {
+                    // Leave the chat without killing it
+                    await _chatService.LeaveChatAsync(userId);
+                    return RedirectToAction("Index");
+                }
+
+                else
+                {
+                    // TODO: Handle error message
+                    return RedirectToAction("Chat", new { chatId = chat.Id });
+                }
+            }
+
+            else if(userRole == "Admin")
+            {
+                // Leave chat silently
+                await _chatService.LeaveChatAsync(userId);
+            }
 
             return RedirectToAction("Index");
-            
         }
 
         public IActionResult Privacy()

@@ -76,12 +76,14 @@ namespace HelpDeskApp.Repositories
 
             foreach (var topic in topicList)
             {
+                Console.WriteLine(topic.Name);
+
                 var chats = _context.Chats
                     .Include(c => c.Messages)
                     .Where(c => c.EndTime == null
                     && !c.IsServiced
                     && !c.Participants.Any(p => p.ParticipantId == userId)
-                    && c.Topic.StartsWith(topic.Name))
+                    && c.Topic == topic.Name)
                     .ToList();
                 chatList.AddRange(chats);
             }
@@ -96,33 +98,38 @@ namespace HelpDeskApp.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<List<IdWithUsernameViewModel>> GetUserIdWithoutUsernameInChat(int chatId)
+        public async Task<List<string>> GetUserIdsInChat(int chatId)
         {
             return await _context.ChatParticipations
                 .Where(p => p.ChatId == chatId)
-                .Select(p => new IdWithUsernameViewModel
-                {
-                    UserId = p.ParticipantId,
-                })
+                .Select(p => p.ParticipantId)
                 .ToListAsync();
         }
 
         public async Task LeaveChatAsync(string userId)
         {
             var chat = await GetActiveChatByUserId(userId);
-            if (chat != null)
-            {
-                chat.EndTime = DateTime.Now;
-                await _context.SaveChangesAsync();
-            }
+            chat.Participants.RemoveAll(p => p.ParticipantId == userId);
+
+            await _context.SaveChangesAsync();
         }
 
-        public Task RedirectToDifferentTopic(int chatId, string newTopic)
+        public async Task KillChatAsync(string userId, bool isSaved) // TODO: handle logging
+        {
+            var chat = await GetActiveChatByUserId(userId);
+            chat.EndTime = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public Task RedirectToDifferentTopic(int chatId, string topicId)
         {
             // Change the topic of the chat and set IsServiced to false
             var chat = _context.Chats.Find(chatId);
 
-            chat.Topic = newTopic;
+            var topicName = _context.Topics.Find(Int32.Parse(topicId)).Name;
+
+            chat.Topic = topicName;
             chat.IsServiced = false;
 
             return _context.SaveChangesAsync();

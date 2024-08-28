@@ -11,9 +11,10 @@ namespace HelpDeskApp.Repositories
         Task UpdateChatAsync(Chat chat);
         Task<Chat> GetActiveChatByUserId(string userId);
         Task LeaveChatAsync(string userId);
+        Task KillChatAsync(string userId, bool isSaved);
         Task<List<Chat>> GetActiveConsultantChats(string userId, List<Topic> topicList);
         Task<List<Chat>> GetAvailableConsultantChats(string userId, List<Topic> topicList);
-        Task<List<IdWithUsernameViewModel>> GetUserIdWithoutUsernameInChat(int chatId);
+        Task<List<string>> GetUserIdsInChat(int chatId);
         Task RedirectToDifferentTopic(int chatId, string newTopic);
     }
 }

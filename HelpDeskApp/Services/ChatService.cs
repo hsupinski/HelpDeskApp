@@ -68,13 +68,13 @@ namespace HelpDeskApp.Services
 
             var topics = availableTopics.Where(t => t.Name != currentTopic).ToList();
 
-            var usersInChatroom = await _chatRepository.GetUserIdWithoutUsernameInChat(chat.Id);
+            var usersInChatroom = await _chatRepository.GetUserIdsInChat(chat.Id);
 
             var usernames = new List<string>();
 
             foreach(var user in usersInChatroom)
             {
-                var username = await _accountService.GetUsernameById(userId);
+                var username = await _accountService.GetUsernameById(user);
                 usernames.Add(username);
             }
 
@@ -140,26 +140,23 @@ namespace HelpDeskApp.Services
             return await _chatRepository.GetAvailableConsultantChats(userId, topicList);
         }
 
-        public async Task<List<IdWithUsernameViewModel>> GetUserIdWithUsernameInChat(int chatId)
+        public async Task<List<string>> GetUsersInChat(int chatId)
         {
-            var model = await _chatRepository.GetUserIdWithoutUsernameInChat(chatId);
-
-            foreach (var user in model)
-            {
-                user.UserName = await _accountService.GetUsernameById(user.UserId);
-            }
-
-            return model;
+            return await _chatRepository.GetUserIdsInChat(chatId);
         }
 
         public async Task LeaveChatAsync(string userId)
         {
             await _chatRepository.LeaveChatAsync(userId);
         }
-
-        public async Task RedirectToDifferentTopic(int chatId, string newTopic)
+        public async Task KillChatAsync(string userId, bool isSaved)
         {
-            await _chatRepository.RedirectToDifferentTopic(chatId, newTopic);
+            await _chatRepository.KillChatAsync(userId, isSaved);
+        }
+
+        public async Task RedirectToDifferentTopic(int chatId, string topicId)
+        {
+            await _chatRepository.RedirectToDifferentTopic(chatId, topicId);
         }
 
         public async Task<Chat> GetChatById(int chatId)

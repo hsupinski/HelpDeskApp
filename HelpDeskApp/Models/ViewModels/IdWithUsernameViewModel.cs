@@ -2,7 +2,7 @@
 {
     public class IdWithUsernameViewModel
     {
-        public string UserId { get; set; }
-        public string UserName { get; set; }
+        public string id { get; set; }
+        public string username { get; set; }
     }
 }

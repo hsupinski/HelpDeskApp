@@ -1,5 +1,6 @@
 ﻿using HelpDeskApp.Data;
 using HelpDeskApp.Models.Domain;
+using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.SignalR;
 
@@ -81,18 +82,25 @@ namespace HelpDeskApp.Hubs
             await BroadcastUserList(chatId);
         }
 
-        public async Task ChangeChatTopic(string chatId, string newTopic)
+        public async Task ChangeChatTopic(string chatId, string topicId)
         {
-            await _chatService.RedirectToDifferentTopic(Int32.Parse(chatId), newTopic);
+            await _chatService.RedirectToDifferentTopic(Int32.Parse(chatId), topicId);
 
-            await Clients.Group(chatId).SendAsync("TopicChanged", newTopic);
+            await Clients.Group(chatId).SendAsync("TopicChanged", topicId);
         }
 
         public async Task BroadcastUserList(string chatId)
         {
-            var usersInChat = await _chatService.GetUserIdWithUsernameInChat(Int32.Parse(chatId));
-            var userList = usersInChat.Select(u => new { Id = u.UserId, Username = u.UserName }).ToList();
-            await Clients.Group(chatId).SendAsync("UpdateUserList", userList);
+            var usersInChat = await _chatService.GetUsersInChat(Int32.Parse(chatId));
+
+            var idWithUsername = new List<IdWithUsernameViewModel>();
+
+            foreach (var userId in usersInChat)
+            {
+                var username = await _accountService.GetUsernameById(userId);
+                idWithUsername.Add(new IdWithUsernameViewModel { id = userId, username = username });
+            }
+            await Clients.Group(chatId).SendAsync("UpdateUserList", idWithUsername);
         }
     }
 }
