@@ -29,10 +29,14 @@ namespace HelpDeskApp.Controllers
             {
                 var departmentNames = new List<string>();
 
-                foreach (var departmentId in topic.DepartmentIds)
+                if(topic.DepartmentIds != null)
                 {
-                    var department = await _departmentService.GetByIdAsync(departmentId);
-                    departmentNames.Add(department.Name);
+                    foreach (var departmentId in topic.DepartmentIds)
+                    {
+                        var department = await _departmentService.GetByIdAsync(departmentId);
+                        if(department != null)
+                            departmentNames.Add(department.Name);
+                    }
                 }
 
                 var topicViewModel = new TopicViewModel
@@ -44,7 +48,7 @@ namespace HelpDeskApp.Controllers
 
                 topicViewModelList.Add(topicViewModel);
             }
-
+            
             return View(topicViewModelList);
         }
 

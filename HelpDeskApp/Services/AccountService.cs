@@ -27,7 +27,7 @@ namespace HelpDeskApp.Services
 
         public async Task<List<string>> GetAllRolesAsync()
         {
-            List<string> userRoleList = ["User", "Consultant", "Department Head"];
+            List<string> userRoleList = ["User", "Consultant", "Department Head", "Admin"];
 
             return userRoleList;
         }

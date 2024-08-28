@@ -28,9 +28,30 @@
                     <button id="sendMessageButton" class="btn btn-primary">Send</button>
                 </div>
             </div>
+            <div class="col-md-3">
+                <h4>Users in Chat</h4>
+                <ul id="userList" class="list-group">
+                    @foreach(var user in Model.UsersInChatroom)
+                    {
+                        <li class="list-group-item">@user</li>
+                    }
+                </ul>
+            </div>
         </div>
         <div class="card-footer">
             <button id="leaveChatButton" class="btn btn-danger">Leave Chat</button>
+            @if (User.IsInRole("Consultant"))
+            {
+                <div class="mt-3">
+                    <select id="topicSelect" class="form-control">
+                        @foreach (var topic in Model.AvailableTopics)
+                        {
+                            <option value="@topic.Id">@topic.Name</option>
+                        }
+                    </select>
+                    <button id="changeTopicButton" class="btn btn-warning mt-2">Change Topic</button>
+                </div>
+            }
         </div>
     </div>
 </div>

@@ -8,7 +8,7 @@
         public DateTime? EndTime { get; set; }
         public bool IsSaved { get; set; } = true; // Default value is true
         public bool IsServiced { get; set; } = false; // Is the chat handled by an agent
-        public List<Message> Messages { get; set; }
-        public List<ChatParticipation> Participants { get; set; }
+        public List<Message> Messages { get; set; } = new List<Message>();
+        public List<ChatParticipation> Participants { get; set; } = new List<ChatParticipation>();
     }
 }

@@ -1,6 +1,6 @@
 ﻿const connection = new signalR.HubConnectionBuilder()
     .withUrl("/chatHub")
-    .configureLogging(signalR.LogLevel.Trace)
+    .configureLogging(signalR.LogLevel.Information)
     .build();
 
 connection.on("ReceiveMessage", (userId, message, username) => {
@@ -16,12 +16,59 @@ connection.on("ReceiveMessage", (userId, message, username) => {
     }
 });
 
+connection.on("UserJoined", (userId, username) => {
+    const messagesList = document.getElementById("messagesList");
+    const msg = document.createElement("div");
+    msg.className = "system-message";
+    msg.innerHTML = `<em>${username} has joined the chat.</em>`;
+    messagesList.appendChild(msg);
+    messagesList.scrollTop = messagesList.scrollHeight;
+});
+
+connection.on("UserLeft", (userId, username) => {
+    const messagesList = document.getElementById("messagesList");
+    const msg = document.createElement("div");
+    msg.className = "system-message";
+    msg.innerHTML = `<em>${username} has left the chat.</em>`;
+    messagesList.appendChild(msg);
+    messagesList.scrollTop = messagesList.scrollHeight;
+});
+
+connection.on("UpdateUserList", (users) => {
+    const userList = document.getElementById("userList");
+    userList.innerHTML = "";
+    users.forEach(user => {
+        const li = document.createElement("li");
+        li.className = "list-group-item";
+        li.textContent = user.username;
+        li.setAttribute("data-user-id", user.id);
+        userList.appendChild(li);
+    });
+});
+
+connection.on("TopicChanged", (newTopicId) => {
+    const topicSelect = document.getElementById("topicSelect");
+    topicSelect.value = newTopicId;
+    const messagesList = document.getElementById("messagesList");
+    const msg = document.createElement("div");
+    msg.className = "system-message";
+    msg.innerHTML = `<em>The chat topic has been changed to ${topicSelect.options[topicSelect.selectedIndex].text}.</em>`;
+    messagesList.appendChild(msg);
+});
+
 document.getElementById("sendMessageButton").addEventListener("click", sendMessage);
 document.getElementById("messageInput").addEventListener("keypress", function (event) {
     if (event.key === "Enter") {
         sendMessage(event);
     }
 });
+
+document.getElementById("leaveChatButton").addEventListener("click", leaveChat);
+
+const changeTopicButton = document.getElementById("changeTopicButton");
+if (changeTopicButton) {
+    changeTopicButton.addEventListener("click", changeTopic);
+}
 
 let isConnected = false;
 
@@ -34,15 +81,6 @@ connection.start().then(() => {
         .catch(err => console.error("Error invoking JoinChat:", err));
 }).catch(err => console.error(err.toString()));
 
-document.getElementById("leaveChatButton").addEventListener("click", () => {
-    const chatId = document.getElementById("chatId").value;
-    connection.invoke("LeaveChat", chatId)
-        .then(() => {
-            console.log("Left chat successfully");
-            window.location.href = "/Home/LeaveChat";
-        })
-        .catch(err => console.error("Error leaving chat:", err.toString()));
-});
 function sendMessage(event) {
     if (!isConnected) {
         console.error("Not connected to SignalR Hub");
@@ -68,3 +106,32 @@ function sendMessage(event) {
     event.preventDefault();
 }
 
+function leaveChat() {
+    const chatId = document.getElementById("chatId").value;
+    connection.invoke("LeaveChat", chatId)
+        .then(() => {
+            console.log("Left chat successfully");
+            window.location.href = "/Home/LeaveChat";
+        })
+        .catch(err => console.error("Error leaving chat:", err.toString()));
+}
+
+function changeTopic() {
+    const chatId = document.getElementById("chatId").value;
+    const newTopicId = document.getElementById("topicSelect").value;
+    connection.invoke("ChangeChatTopic", chatId, newTopicId)
+        .then(() => console.log("Topic changed successfully"))
+        .catch(err => console.error("Error changing topic:", err.toString()));
+}
+
+function updateUserList(userId, username, joined) {
+    const userList = document.getElementById("userList");
+    userList.innerHTML = "";
+    users.forEach(user => {
+        const li = document.createElement("li");
+        li.className = "list-group-item";
+        li.textContent = user.username;
+        li.setAttribute("data-user-id", user.id);
+        userList.appendChild(li);
+    });
+}

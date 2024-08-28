@@ -7,72 +7,73 @@ using System.Security.Claims;
 
 namespace HelpDeskApp.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+
         private readonly IChatService _chatService;
         private readonly ITopicService _topicService;
 
-        public HomeController(ILogger<HomeController> logger, IChatService chatService, ITopicService topicService)
+        public HomeController(IChatService chatService, ITopicService topicService)
         {
-            _logger = logger;
             _chatService = chatService;
             _topicService = topicService;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-
-        [Authorize]
-        public async Task<IActionResult> Chat(int? topicId = null)
+        public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                
-            var chat = await _chatService.GetActiveChatByUserId(userId);
+            var activeChat = await _chatService.GetActiveChatByUserId(userId);
 
-            if(chat == null)
+            if (activeChat != null)
             {
-                if(!topicId.HasValue)
-                {
-                    return RedirectToAction("ChooseTopic");
-                }
-
-                chat = await _chatService.CreateChatAsync(userId, topicId.Value);
+                return RedirectToAction("Chat", new { chatId = activeChat.Id });
             }
 
-            var model = await _chatService.CreateChatViewModel(chat, userId);
-
-            Console.WriteLine($"Chat ID: {model.ChatId}");
-
-            return View(model);
+            return RedirectToAction("ChooseTopic");
         }
-
         public async Task<IActionResult> ChooseTopic()
         {
             var topics = await _topicService.GetAllAsync();
             return View(topics);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ChooseTopic(int topicId)
+        public async Task<IActionResult> CreateChat(int topicId)
         {
-            return RedirectToAction("Chat", new { topicId });
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var chat = await _chatService.CreateChatAsync(userId, topicId);
+            return RedirectToAction("Chat", new { chatId = chat.Id });
         }
 
-        [Authorize]
+        public async Task<IActionResult> JoinChat(int chatId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            if (userRole == "Consultant")
+            {
+                await _chatService.JoinChatAsConsultant(chatId, userId);
+            }
+
+            // Currently only consultants can join chats with normal users
+
+            return RedirectToAction("Chat", new { chatId });
+        }
+
+        public async Task<IActionResult> Chat(int chatId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var chat = await _chatService.GetChatById(chatId);
+
+            if (chat == null)
+            {
+                return RedirectToAction("ChooseTopic");
+            }
+
+            var model = await _chatService.CreateChatViewModel(chat, userId);
+            return View(model);
+        }
+
         public async Task<IActionResult> LeaveChat()
         {
             Console.WriteLine("LeaveChat called.");
@@ -90,6 +91,17 @@ namespace HelpDeskApp.Controllers
 
             return RedirectToAction("Index");
             
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

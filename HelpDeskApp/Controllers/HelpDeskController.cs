@@ -2,6 +2,7 @@
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using HelpDeskApp.Models.ViewModels;
 
 namespace HelpDeskApp.Controllers
 {
@@ -14,12 +15,44 @@ namespace HelpDeskApp.Controllers
         {
             _chatService = chatService;
         }
-        //public IActionResult Index()
-        //{
-        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        //    var activeChats = _chatService.GetActiveConsultantChats(userId);
-        //    var availableChats = _chatService.GetAvailableConsultantChats(userId);
-        //}
+        public async Task<IActionResult> Panel()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var activeChats = await _chatService.GetActiveConsultantChats(userId);
+            var availableChats = await _chatService.GetAvailableConsultantChats(userId);
+
+            var model = new List<ChatDisplayInHelpDeskViewModel>();
+
+            foreach(var chat in activeChats)
+            {
+                model.Add(new ChatDisplayInHelpDeskViewModel
+                {
+                    chatId = chat.Id,
+                    topicName = chat.Topic,
+                    isCurrentConsultantInChat = true
+                });
+            }
+
+            foreach (var chat in availableChats)
+            {
+                model.Add(new ChatDisplayInHelpDeskViewModel
+                {
+                    chatId = chat.Id,
+                    topicName = chat.Topic,
+                });
+            }
+
+            return View(model);
+        }
+
+        public async Task<IActionResult> JoinChat(int chatId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _chatService.JoinChatAsConsultant(chatId, userId);
+
+            return RedirectToAction("Chat", "Home", new { chatId = chatId });
+        }
     }
 }
