@@ -3,6 +3,7 @@ using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using HelpDeskApp.Models.ViewModels;
 
 namespace HelpDeskApp.Controllers
 {
@@ -21,7 +22,21 @@ namespace HelpDeskApp.Controllers
         public async Task<IActionResult> Index()
         {
             List<Department> departmentList = await _departmentService.GetAllAsync();
-            return View(departmentList);
+
+            var model = new List<DepartmentWithHeadViewModel>();
+
+            foreach (var department in departmentList)
+            {
+                var departmentHead = await _accountService.GetUserByIdAsync(department.DepartmentHeadId);
+                model.Add(new DepartmentWithHeadViewModel
+                {
+                    Id = department.Id,
+                    DepartmentHeadName = departmentHead.UserName,
+                    DepartmentName = department.Name
+                });
+            }
+
+            return View(model);
         }
 
         public async Task<IActionResult> Create()
@@ -101,6 +116,72 @@ namespace HelpDeskApp.Controllers
             ViewBag.Users = await _accountService.GetUsersInRoleAsync("Consultant");
             ViewBag.Users.AddRange(await _accountService.GetUsersInRoleAsync("Department Head"));
             return View(department);
+        }
+
+        public async Task<IActionResult> AssignConsultants(int id)
+        {
+            var consultants = await _accountService.GetUsersInRoleAsync("Consultant");
+            var departmentHeads = await _accountService.GetUsersInRoleAsync("Department Head");
+            var department = await _departmentService.GetByIdAsync(id);
+
+            var model = new List<ConsultantInDepartmentViewModel>();
+
+            var availableUsers = new List<IdentityUser>();
+
+            // Both department heads and consultants are available to be assigned to the department
+
+            availableUsers.AddRange(consultants);
+            availableUsers.AddRange(departmentHeads);
+            
+            // Remove duplicates
+
+            availableUsers = availableUsers.Distinct().ToList();
+
+            // Remove the head of the selected department from the list of available users
+
+            availableUsers.RemoveAll(user => user.Id == department.DepartmentHeadId);
+
+            if (availableUsers != null)
+            {
+                foreach (var user in availableUsers)
+                {
+                    model.Add(new ConsultantInDepartmentViewModel
+                    {
+                        ConsultantId = user.Id,
+                        ConsultantName = user.UserName,
+                        IsInDepartment = department.ConsultantId.Contains(user.Id)
+                    });
+                }
+            }
+
+            ViewBag.DepartmentId = id;
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AssignConsultants(int id, List<ConsultantInDepartmentViewModel> model)
+        {
+            var department = await _departmentService.GetByIdAsync(id);
+
+            if (department == null)
+            {
+                return NotFound();
+            }
+
+            var consultants = new List<string>();
+
+            foreach (var consultant in model)
+            {
+                if (consultant.IsInDepartment)
+                {
+                    consultants.Add(consultant.ConsultantId);
+                }
+            }
+
+            department.ConsultantId = consultants;
+            await _departmentService.UpdateAsync(department, department.DepartmentHeadId);
+
+            return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Delete(int id)

@@ -1,4 +1,4 @@
-﻿@model List<HelpDeskApp.Models.Domain.Department>
+﻿@model List<HelpDeskApp.Models.ViewModels.DepartmentWithHeadViewModel>
 
 <h2 class="mb-4">Departments</h2>
 
@@ -18,10 +18,11 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.Name</td>
-                <td>@item.DepartmentHeadId</td>
+                <td>@item.DepartmentName</td>
+                <td>@item.DepartmentHeadName</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
+                    <a asp-action="AssignConsultants" asp-route-id="@item.Id" class="btn btn-sm btn-info">Assign Consultants</a>
                     <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
                 </td>
             </tr>

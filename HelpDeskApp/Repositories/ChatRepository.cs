@@ -26,11 +26,21 @@ namespace HelpDeskApp.Repositories
                 .FirstOrDefaultAsync(c => c.EndTime == null && c.Messages.Any(m => m.SenderId == userId));
         }
 
+        public Task<Chat> GetActiveConsultantChats(string userId, List<Topic> topicList)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<List<Message>> GetAllMessagesAsync(int id)
         {
             return await _context.Messages
                 .Where(m => m.ChatId == id)
                 .ToListAsync();
+        }
+
+        public Task<Chat> GetAvailableConsultantChats(string userId)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task LeaveChatAsync(string userId)

@@ -3,6 +3,7 @@ using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using HelpDeskApp.Models.ViewModels;
 
 namespace HelpDeskApp.Controllers
 {
@@ -21,7 +22,30 @@ namespace HelpDeskApp.Controllers
         {
             var topicList = new List<Topic>();
             topicList = await _topicService.GetAllAsync();
-            return View(topicList);
+
+            List<TopicViewModel> topicViewModelList = new List<TopicViewModel>();
+
+            foreach (var topic in topicList)
+            {
+                var departmentNames = new List<string>();
+
+                foreach (var departmentId in topic.DepartmentIds)
+                {
+                    var department = await _departmentService.GetByIdAsync(departmentId);
+                    departmentNames.Add(department.Name);
+                }
+
+                var topicViewModel = new TopicViewModel
+                {
+                    Id = topic.Id,
+                    Name = topic.Name,
+                    DepartmentNames = departmentNames
+                };
+
+                topicViewModelList.Add(topicViewModel);
+            }
+
+            return View(topicViewModelList);
         }
 
         public async Task<IActionResult> Create()
@@ -78,7 +102,20 @@ namespace HelpDeskApp.Controllers
                 return NotFound();
             }
 
-            return View(topic);
+            var topicViewModel = new TopicViewModel
+            {
+                Id = topic.Id,
+                Name = topic.Name,
+                DepartmentNames = new List<string>()
+            };
+
+            foreach (var departmentId in topic.DepartmentIds)
+            {
+                var department = await _departmentService.GetByIdAsync(departmentId);
+                topicViewModel.DepartmentNames.Add(department.Name);
+            }
+
+            return View(topicViewModel);
         }
 
         [HttpPost, ActionName("Delete")]

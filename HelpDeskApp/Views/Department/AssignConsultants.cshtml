@@ -1,0 +1,31 @@
+﻿@model List<HelpDeskApp.Models.ViewModels.ConsultantInDepartmentViewModel>
+
+<h2 class="mb-4">Manage Consultants</h2>
+
+<form asp-action="AssignConsultants" method="post">
+    <input type="hidden" name="id" value="@ViewBag.DepartmentId" />
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Is in department</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @Model[i].ConsultantName
+                        <input type="hidden" name="[@i].ConsultantId" value="@Model[i].ConsultantId" />
+                        <input type="hidden" name="[@i].ConsultantName" value="@Model[i].ConsultantName" />
+                    </td>
+                    <td>
+                        <input type="checkbox" name="[@i].IsInDepartment" value="true" @(Model[i].IsInDepartment ? "checked" : "") />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</form>

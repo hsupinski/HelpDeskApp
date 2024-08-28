@@ -1,4 +1,4 @@
-﻿@model HelpDeskApp.Models.Domain.Topic
+﻿@model HelpDeskApp.Models.ViewModels.TopicViewModel
 
 <h2 class="mb-4">Delete Topic</h2>
 
@@ -17,7 +17,10 @@
             Department
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.DepartmentId)
+            @foreach (var department in Model.DepartmentNames)
+            {
+                @department <br />
+            }
         </dd>
     </dl>
 

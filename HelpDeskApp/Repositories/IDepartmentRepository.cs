@@ -1,14 +1,15 @@
 ﻿using HelpDeskApp.Models.Domain;
 
-namespace HelpDeskApp.Services
+namespace HelpDeskApp.Repositories
 {
-    public interface IDepartmentService
+    public interface IDepartmentRepository
     {
         Task<List<Department>> GetAllAsync();
         Task<Department> GetByIdAsync(int id);
-        Task AddAsync(Department department, string departmentHeadId);
-        Task UpdateAsync(Department department, string departmentHeadId);
+        Task AddAsync(Department department);
+        Task UpdateAsync(Department department);
         Task DeleteAsync(int id);
         Task<List<Department>> GetUserDepartments(string userId);
+
     }
 }

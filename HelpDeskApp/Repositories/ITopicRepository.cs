@@ -1,8 +1,8 @@
 ﻿using HelpDeskApp.Models.Domain;
 
-namespace HelpDeskApp.Services
+namespace HelpDeskApp.Repositories
 {
-    public interface ITopicService
+    public interface ITopicRepository
     {
         Task<List<Topic>> GetAllAsync();
         Task AddAsync(Topic topic);

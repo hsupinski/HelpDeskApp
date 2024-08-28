@@ -32,6 +32,8 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<ITopicRepository, TopicRepository>();
 
 var app = builder.Build();
 

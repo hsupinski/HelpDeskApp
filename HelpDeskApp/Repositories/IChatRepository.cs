@@ -8,5 +8,7 @@ namespace HelpDeskApp.Repositories
         Task<Chat> CreateChatAsync(Chat chat);
         Task<Chat> GetActiveChatByUserId(string userId);
         Task LeaveChatAsync(string userId);
+        Task<Chat> GetActiveConsultantChats(string userId, List<Topic> topicList);
+        Task<Chat> GetAvailableConsultantChats(string userId);
     }
 }

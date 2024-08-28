@@ -4,6 +4,7 @@ using HelpDeskApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HelpDeskApp.Migrations.HelpDeskDb
 {
     [DbContext(typeof(HelpDeskDbContext))]
-    partial class HelpDeskDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240828053029_fixed topic-department relation")]
+    partial class fixedtopicdepartmentrelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,9 +40,6 @@ namespace HelpDeskApp.Migrations.HelpDeskDb
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsSaved")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsServiced")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("StartTime")

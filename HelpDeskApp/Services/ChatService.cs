@@ -1,7 +1,6 @@
 ﻿using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Repositories;
-using System.Security.Claims;
 
 namespace HelpDeskApp.Services
 {
@@ -10,11 +9,14 @@ namespace HelpDeskApp.Services
         private readonly IAccountService _accountService;
         private readonly IChatRepository _chatRepository;
         private readonly ITopicService _topicService;
-        public ChatService(IChatRepository chatRepository, IAccountService accountService, ITopicService topicService)
+        private readonly IDepartmentService _departmentService;
+        public ChatService(IChatRepository chatRepository, IAccountService accountService, ITopicService topicService, 
+            IDepartmentService departmentService)
         {
             _chatRepository = chatRepository;
             _accountService = accountService;
             _topicService = topicService;
+            _departmentService = departmentService;
         }
         public async Task<Chat> CreateChatAsync(string userId, int topicId)
         {
@@ -26,6 +28,14 @@ namespace HelpDeskApp.Services
                 StartTime = DateTime.Now,
                 EndTime = null,
                 Messages = new List<Message>(),
+                Participants = new List<ChatParticipation>
+                {
+                    new ChatParticipation
+                    {
+                        ParticipantId = userId,
+                        IsHidden = false // By default chats are created by non-admin users
+                    }
+                }
             };
 
             await _chatRepository.CreateChatAsync(chat);
@@ -46,10 +56,36 @@ namespace HelpDeskApp.Services
             return model;
         }
 
-        // Get the chat if it's not closed (EndTime is null)
         public async Task<Chat> GetActiveChatByUserId(string userId)
         {
             return await _chatRepository.GetActiveChatByUserId(userId);
+        }
+
+        public async Task<Chat> GetActiveConsultantChats(string userId)
+        {
+            /*
+             * Active consultant chat:
+             * - Is not closed (EndTime is null)
+             * - IsServiced is true
+             * - Participant list contains the consultant
+             * - Chat topic belongs to the consultant's department
+             */
+
+            var departmentList = await _departmentService.GetUserDepartments(userId);
+            var topicList = new List<Topic>();
+
+            foreach (var department in departmentList)
+            {
+                var topics = await _topicService.GetTopicsByDepartmentId(department.Id);
+                topicList.AddRange(topics);
+            }
+
+            return await _chatRepository.GetActiveConsultantChats(userId, topicList);
+        }
+
+        public async Task<Chat> GetAvailableConsultantChats(string userId)
+        {
+            return await _chatRepository.GetAvailableConsultantChats(userId);
         }
 
         public async Task LeaveChatAsync(string userId)
