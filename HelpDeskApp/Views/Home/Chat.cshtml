@@ -1,5 +1,21 @@
 ﻿@model HelpDeskApp.Models.ViewModels.ChatViewModel
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="container mt-4">
     <div class="card">
         <div class="card-header bg-primary text-white">
@@ -39,7 +55,7 @@
             </div>
         </div>
         <div class="card-footer">
-            <button id="leaveChatButton" class="btn btn-danger">Leave Chat</button>
+            <button id="leaveChatButton" class="btn btn-danger">End Chat</button>
             @if (User.IsInRole("Consultant"))
             {
                 <div class="mt-3">

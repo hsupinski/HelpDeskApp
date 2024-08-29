@@ -9,9 +9,9 @@ namespace HelpDeskApp.Services
         Task<Chat> GetActiveChatByUserId(string userId);
         Task<ChatViewModel> CreateChatViewModel(Chat chat, string userId);
         Task LeaveChatAsync(string userId);
-        Task KillChatAsync(string userId, bool isSaved);
+        Task FinishChatAsync(string userId, bool isSaved);
         Task<List<Chat>> GetAvailableConsultantChats(string userId);
-        Task<List<Chat>> GetActiveConsultantChats(string userId);
+        Task<List<Chat>> GetAllOpenChats(string userId);
         Task<List<string>> GetUsersInChat(int chatId);
         Task RedirectToDifferentTopic(int chatId, string newTopic);
         Task JoinChatAsConsultant(int chatId, string userId);

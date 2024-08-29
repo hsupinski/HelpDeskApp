@@ -3,6 +3,7 @@ using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using HelpDeskApp.Models.ViewModels;
+using HelpDeskApp.Models.Domain;
 
 namespace HelpDeskApp.Controllers
 {
@@ -10,39 +11,22 @@ namespace HelpDeskApp.Controllers
     public class HelpDeskController : Controller
     {
         private readonly IChatService _chatService;
+        private readonly IAccountService _accountService;
+        private readonly IHelpDeskService _helpDeskService;
 
-        public HelpDeskController(IChatService chatService)
+        public HelpDeskController(IChatService chatService, IAccountService accountService, IHelpDeskService helpDeskService)
         {
             _chatService = chatService;
+            _accountService = accountService;
+            _helpDeskService = helpDeskService;
         }
 
         public async Task<IActionResult> Panel()
         {
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var activeChats = await _chatService.GetActiveConsultantChats(userId);
-            var availableChats = await _chatService.GetAvailableConsultantChats(userId);
-
-            var model = new List<ChatDisplayInHelpDeskViewModel>();
-
-            foreach(var chat in activeChats)
-            {
-                model.Add(new ChatDisplayInHelpDeskViewModel
-                {
-                    chatId = chat.Id,
-                    topicName = chat.Topic,
-                    isCurrentConsultantInChat = true
-                });
-            }
-
-            foreach (var chat in availableChats)
-            {
-                model.Add(new ChatDisplayInHelpDeskViewModel
-                {
-                    chatId = chat.Id,
-                    topicName = chat.Topic,
-                });
-            }
+            var availableChats = await _helpDeskService.GetAvailableChats(userId);
+            var model = await _helpDeskService.CreateChatDisplayViewModel(availableChats);
 
             return View(model);
         }

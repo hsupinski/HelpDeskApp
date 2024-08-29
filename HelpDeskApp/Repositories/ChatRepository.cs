@@ -1,6 +1,6 @@
 ﻿using HelpDeskApp.Data;
 using HelpDeskApp.Models.Domain;
-using HelpDeskApp.Models.ViewModels;
+using HelpDeskApp.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace HelpDeskApp.Repositories
@@ -8,9 +8,11 @@ namespace HelpDeskApp.Repositories
     public class ChatRepository : IChatRepository
     {
         private readonly HelpDeskDbContext _context;
-        public ChatRepository(HelpDeskDbContext helpDeskDbContext)
+        private readonly IAccountService _accountService;
+        public ChatRepository(HelpDeskDbContext helpDeskDbContext, IAccountService accountService)
         {
             _context = helpDeskDbContext;
+            _accountService = accountService;
         }
 
         public async Task<Chat> CreateChatAsync(Chat chat)
@@ -109,12 +111,26 @@ namespace HelpDeskApp.Repositories
         public async Task LeaveChatAsync(string userId)
         {
             var chat = await GetActiveChatByUserId(userId);
-            chat.Participants.RemoveAll(p => p.ParticipantId == userId);
+            var chatId = chat.Id;
+
+            var chatParticipation = await _context.ChatParticipations
+                .FirstOrDefaultAsync(p => p.ChatId == chatId && p.ParticipantId == userId);
+
+            _context.ChatParticipations.Remove(chatParticipation);
+
+            var user = await _accountService.GetUserByIdAsync(userId);
+            var userRoles = _accountService.GetUserRolesAsync(user);
+
+            // If user is a default user, close the chat
+            if (userRoles.Result.Contains("User"))
+            {
+                await FinishChatAsync(userId, false);
+            }
 
             await _context.SaveChangesAsync();
         }
 
-        public async Task KillChatAsync(string userId, bool isSaved) // TODO: handle logging
+        public async Task FinishChatAsync(string userId, bool isSaved) // TODO: handle logging
         {
             var chat = await GetActiveChatByUserId(userId);
             chat.EndTime = DateTime.UtcNow;
@@ -139,6 +155,16 @@ namespace HelpDeskApp.Repositories
         {
             _context.Chats.Update(chat);
             await _context.SaveChangesAsync();
+        }
+
+        public Task<List<Chat>> GetAllOpenChats(string userId)
+        {
+            // Returns every chat that is not closed (to be displayed for admin)
+
+            return _context.Chats
+                .Include(c => c.Messages)
+                .Where(c => c.EndTime == null)
+                .ToListAsync();
         }
     }
 }

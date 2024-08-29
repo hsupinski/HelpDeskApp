@@ -30,6 +30,7 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<IHelpDeskService, HelpDeskService>();
 
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();

@@ -21,11 +21,18 @@ namespace HelpDeskApp.Hubs
 
         public async Task JoinChat(string chatId)
         {
+            var user = await _accountService.GetUserByIdAsync(Context.UserIdentifier);
+            var userRoles = await _accountService.GetUserRolesAsync(user);
+
             await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
             var username = await _accountService.GetUsernameById(Context.UserIdentifier);
 
-            await Clients.Group(chatId).SendAsync("UserJoined", Context.UserIdentifier, username);
-            await BroadcastUserList(chatId);
+
+            if(!userRoles.Contains("Admin"))
+            { 
+                await Clients.Group(chatId).SendAsync("UserJoined", Context.UserIdentifier, username);
+                await BroadcastUserList(chatId);
+            }
         }
 
         public async Task SendMessage(string chatId, string message, string userId)
@@ -45,6 +52,8 @@ namespace HelpDeskApp.Hubs
                     return;
                 }
 
+                var user = await _accountService.GetUserByIdAsync(userId);
+                var userRoles = await _accountService.GetUserRolesAsync(user);
                 var username = await _accountService.GetUsernameById(userId);
 
                 var newMessage = new Message
@@ -75,11 +84,18 @@ namespace HelpDeskApp.Hubs
 
         public async Task LeaveChat(string chatId)
         {
+            var user = await _accountService.GetUserByIdAsync(Context.UserIdentifier);
+            var userRoles = await _accountService.GetUserRolesAsync(user);
+
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
             var username = await _accountService.GetUsernameById(Context.UserIdentifier);
-            await Clients.Group(chatId).SendAsync("UserLeft", Context.UserIdentifier, username);
 
-            await BroadcastUserList(chatId);
+            if (!userRoles.Contains("Admin"))
+            {
+                await Clients.Group(chatId).SendAsync("UserLeft", Context.UserIdentifier, username);
+                await BroadcastUserList(chatId);
+            }
+
         }
 
         public async Task ChangeChatTopic(string chatId, string topicId)

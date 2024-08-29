@@ -1,4 +1,5 @@
 ﻿using HelpDeskApp.Models.Domain;
+using HelpDeskApp.Models.ViewModels;
 
 namespace HelpDeskApp.Services
 {
@@ -10,5 +11,7 @@ namespace HelpDeskApp.Services
         Task UpdateAsync(Topic topic);
         Task DeleteAsync(int id);
         Task<List<Topic>> GetTopicsByDepartmentId(int departmentId);
+        Task<List<TopicViewModel>> CreateTopicViewModelList(List<Topic> topicList);
+        Task<TopicViewModel> CreateTopicViewModel(Topic topic);
     }
 }

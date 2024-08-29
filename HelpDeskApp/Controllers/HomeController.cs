@@ -26,22 +26,46 @@ namespace HelpDeskApp.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var activeChat = await _chatService.GetActiveChatByUserId(userId);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
 
             if (activeChat != null)
             {
                 return RedirectToAction("Chat", new { chatId = activeChat.Id });
             }
 
-            return RedirectToAction("ChooseTopic");
+            if(userRole == "User")
+            {
+                return RedirectToAction("ChooseTopic");
+            }
+
+            return View();
+
         }
+
+
         public async Task<IActionResult> ChooseTopic()
         {
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            if(userRole != "User")
+            {
+                return RedirectToAction("Index");
+            }
+
             var topics = await _topicService.GetAllAsync();
             return View(topics);
         }
 
+
         public async Task<IActionResult> CreateChat(int topicId)
         {
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            if (userRole != "User")
+            {
+                return RedirectToAction("Index");
+            }
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var chat = await _chatService.CreateChatAsync(userId, topicId);
             return RedirectToAction("Chat", new { chatId = chat.Id });
@@ -52,12 +76,10 @@ namespace HelpDeskApp.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
-            if (userRole == "Consultant")
+            if (userRole == "Consultant" || userRole == "Department Head" || userRole == "Admin")
             {
                 await _chatService.JoinChatAsConsultant(chatId, userId);
             }
-
-            // Currently only consultants can join chats with normal users
 
             return RedirectToAction("Chat", new { chatId });
         }
@@ -73,11 +95,6 @@ namespace HelpDeskApp.Controllers
             }
 
             var model = await _chatService.CreateChatViewModel(chat, userId);
-
-            foreach(var username in model.UsersInChatroom)
-            {
-                Console.WriteLine(username);
-            }
 
             return View(model);
         }
@@ -101,7 +118,8 @@ namespace HelpDeskApp.Controllers
             if (userRole == "User")
             {
                 await _chatService.LeaveChatAsync(userId);
-                await _chatService.KillChatAsync(userId, false);
+
+                TempData["SuccessMessage"] = "Chat closed successfully.";
             }
 
             else if (userRole == "Consultant")
@@ -124,16 +142,19 @@ namespace HelpDeskApp.Controllers
                     }
                 }
 
+                Console.WriteLine($"Count: {count}");
+
                 if (count > 1)
                 {
                     // Leave the chat without killing it
                     await _chatService.LeaveChatAsync(userId);
+                    TempData["SuccessMessage"] = "You left the chat successfully.";
                     return RedirectToAction("Index");
                 }
 
                 else
                 {
-                    // TODO: Handle error message
+                    TempData["ErrorMessage"] = "You cannot leave the user alone.";
                     return RedirectToAction("Chat", new { chatId = chat.Id });
                 }
             }
@@ -142,6 +163,7 @@ namespace HelpDeskApp.Controllers
             {
                 // Leave chat silently
                 await _chatService.LeaveChatAsync(userId);
+                TempData["SuccessMessage"] = "You left the chat successfully.";
             }
 
             return RedirectToAction("Index");

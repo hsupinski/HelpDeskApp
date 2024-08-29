@@ -1,7 +1,7 @@
 ﻿using HelpDeskApp.Data;
 using HelpDeskApp.Models.Domain;
+using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace HelpDeskApp.Services
 {
@@ -9,15 +9,66 @@ namespace HelpDeskApp.Services
     {
         private readonly HelpDeskDbContext _context;
         private readonly ITopicRepository _topicRepository;
-        public TopicService(HelpDeskDbContext helpDeskDbContext, ITopicRepository topicRepository)
+        private readonly IDepartmentService _departmentService;
+        public TopicService(HelpDeskDbContext helpDeskDbContext, ITopicRepository topicRepository, IDepartmentService departmentService)
         {
             _context = helpDeskDbContext;
             _topicRepository = topicRepository;
+            _departmentService = departmentService;
         }
 
         public async Task AddAsync(Topic topic)
         {
             await _topicRepository.AddAsync(topic);
+        }
+
+        public async Task<List<TopicViewModel>> CreateTopicViewModelList(List<Topic> topicList)
+        {
+            List<TopicViewModel> topicViewModelList = new List<TopicViewModel>();
+
+            foreach (var topic in topicList)
+            {
+                var departmentNames = new List<string>();
+
+                if (topic.DepartmentIds != null)
+                {
+                    foreach (var departmentId in topic.DepartmentIds)
+                    {
+                        var department = await _departmentService.GetByIdAsync(departmentId);
+                        if (department != null)
+                            departmentNames.Add(department.Name);
+                    }
+                }
+
+                var topicViewModel = new TopicViewModel
+                {
+                    Id = topic.Id,
+                    Name = topic.Name,
+                    DepartmentNames = departmentNames
+                };
+
+                topicViewModelList.Add(topicViewModel);
+            }
+
+            return topicViewModelList;
+        }
+
+        public async Task<TopicViewModel> CreateTopicViewModel(Topic topic)
+        {
+            var topicViewModel = new TopicViewModel
+            {
+                Id = topic.Id,
+                Name = topic.Name,
+                DepartmentNames = new List<string>()
+            };
+
+            foreach (var departmentId in topic.DepartmentIds)
+            {
+                var department = await _departmentService.GetByIdAsync(departmentId);
+                topicViewModel.DepartmentNames.Add(department.Name);
+            }
+
+            return topicViewModel;
         }
 
         public async Task DeleteAsync(int id)

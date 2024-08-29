@@ -45,8 +45,17 @@ namespace HelpDeskApp.Services
 
         public async Task JoinChatAsConsultant(int chatId, string userId)
         {
-            var chat = await _chatRepository.GetChatByIdAsync(chatId);
+            var user = await _accountService.GetUserByIdAsync(userId);
+            var userRoles = await _accountService.GetUserRolesAsync(user);
 
+            if(userRoles.Contains("Admin"))
+            {
+                // Don't add admin to the participant list
+                return;
+            }
+
+            var chat = await _chatRepository.GetChatByIdAsync(chatId);
+            
             var chatParticipation = new ChatParticipation
             {
                 ChatId = chatId,
@@ -72,9 +81,17 @@ namespace HelpDeskApp.Services
 
             var usernames = new List<string>();
 
-            foreach(var user in usersInChatroom)
+            foreach(var _userId in usersInChatroom)
             {
-                var username = await _accountService.GetUsernameById(user);
+                var username = await _accountService.GetUsernameById(_userId);
+                var userRoles = await _accountService.GetUserRolesAsync(await _accountService.GetUserByIdAsync(_userId));
+
+                if (userRoles.Contains("Admin"))
+                {
+                    // Don't show Admins in the chatroom
+                    continue;
+                }
+
                 usernames.Add(username);
             }
 
@@ -94,28 +111,6 @@ namespace HelpDeskApp.Services
         public async Task<Chat> GetActiveChatByUserId(string userId)
         {
             return await _chatRepository.GetActiveChatByUserId(userId);
-        }
-
-        public async Task<List<Chat>> GetActiveConsultantChats(string userId)
-        {
-            /*
-             * Active consultant chat:
-             * - Is not closed (EndTime is null)
-             * - IsServiced does not have to be true, it can be false if it's redirected to a different consultant
-             * - Participant list contains the consultant
-             * - Chat topic belongs to the consultant's department
-             */
-
-            var departmentList = await _departmentService.GetUserDepartments(userId);
-            var topicList = new List<Topic>();
-
-            foreach (var department in departmentList)
-            {
-                var topics = await _topicService.GetTopicsByDepartmentId(department.Id);
-                topicList.AddRange(topics);
-            }
-
-            return await _chatRepository.GetActiveConsultantChats(userId, topicList);
         }
 
         public async Task<List<Chat>> GetAvailableConsultantChats(string userId)
@@ -149,9 +144,9 @@ namespace HelpDeskApp.Services
         {
             await _chatRepository.LeaveChatAsync(userId);
         }
-        public async Task KillChatAsync(string userId, bool isSaved)
+        public async Task FinishChatAsync(string userId, bool isSaved)
         {
-            await _chatRepository.KillChatAsync(userId, isSaved);
+            await _chatRepository.FinishChatAsync(userId, isSaved);
         }
 
         public async Task RedirectToDifferentTopic(int chatId, string topicId)
@@ -164,5 +159,9 @@ namespace HelpDeskApp.Services
             return await _chatRepository.GetChatByIdAsync(chatId);
         }
 
+        public async Task<List<Chat>> GetAllOpenChats(string userId)
+        {
+            return await _chatRepository.GetAllOpenChats(userId);
+        }
     }
 }

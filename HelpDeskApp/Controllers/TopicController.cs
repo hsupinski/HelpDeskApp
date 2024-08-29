@@ -3,7 +3,6 @@ using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using HelpDeskApp.Models.ViewModels;
 
 namespace HelpDeskApp.Controllers
 {
@@ -23,33 +22,9 @@ namespace HelpDeskApp.Controllers
             var topicList = new List<Topic>();
             topicList = await _topicService.GetAllAsync();
 
-            List<TopicViewModel> topicViewModelList = new List<TopicViewModel>();
+            var model = await _topicService.CreateTopicViewModelList(topicList);
 
-            foreach (var topic in topicList)
-            {
-                var departmentNames = new List<string>();
-
-                if(topic.DepartmentIds != null)
-                {
-                    foreach (var departmentId in topic.DepartmentIds)
-                    {
-                        var department = await _departmentService.GetByIdAsync(departmentId);
-                        if(department != null)
-                            departmentNames.Add(department.Name);
-                    }
-                }
-
-                var topicViewModel = new TopicViewModel
-                {
-                    Id = topic.Id,
-                    Name = topic.Name,
-                    DepartmentNames = departmentNames
-                };
-
-                topicViewModelList.Add(topicViewModel);
-            }
-            
-            return View(topicViewModelList);
+            return View(model);
         }
 
         public async Task<IActionResult> Create()
@@ -106,18 +81,7 @@ namespace HelpDeskApp.Controllers
                 return NotFound();
             }
 
-            var topicViewModel = new TopicViewModel
-            {
-                Id = topic.Id,
-                Name = topic.Name,
-                DepartmentNames = new List<string>()
-            };
-
-            foreach (var departmentId in topic.DepartmentIds)
-            {
-                var department = await _departmentService.GetByIdAsync(departmentId);
-                topicViewModel.DepartmentNames.Add(department.Name);
-            }
+            var topicViewModel = await _topicService.CreateTopicViewModel(topic);
 
             return View(topicViewModel);
         }

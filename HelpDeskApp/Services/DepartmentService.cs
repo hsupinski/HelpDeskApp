@@ -1,7 +1,8 @@
 ﻿using HelpDeskApp.Data;
 using HelpDeskApp.Models.Domain;
+using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Repositories;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace HelpDeskApp.Services
 {
@@ -33,6 +34,56 @@ namespace HelpDeskApp.Services
             await _departmentRepository.AddAsync(department);
         }
 
+        public async Task AssignConsultants(int departmentId, List<ConsultantInDepartmentViewModel> consultantList)
+        {
+            var department = await GetByIdAsync(departmentId);
+
+            var consultants = new List<string>();
+
+            foreach (var consultant in consultantList)
+            {
+                if (consultant.IsInDepartment)
+                {
+                    consultants.Add(consultant.ConsultantId);
+                }
+            }
+
+            department.ConsultantId = consultants;
+            await UpdateAsync(department, department.DepartmentHeadId);
+        }
+
+        public async Task CreateDepartment(Department department, string departmentHeadId)
+        {
+            var user = await _accountService.GetUserByIdAsync(departmentHeadId);
+            var userRoles = await _accountService.GetUserRolesAsync(user);
+
+            // If selected user is not a Department Head, add the role
+            if (!userRoles.Contains("Department Head"))
+            {
+                await _accountService.AddUserToRolesAsync(user, new List<string> { "Department Head" });
+            }
+
+            await AddAsync(department, departmentHeadId);
+        }
+
+        public async Task<List<DepartmentWithHeadViewModel>> CreateDepartmentWithHeadViewModelList(List<Department> departmentList)
+        {
+            var model = new List<DepartmentWithHeadViewModel>();
+
+            foreach (var department in departmentList)
+            {
+                var departmentHead = await _accountService.GetUserByIdAsync(department.DepartmentHeadId);
+                model.Add(new DepartmentWithHeadViewModel
+                {
+                    Id = department.Id,
+                    DepartmentHeadName = departmentHead.UserName,
+                    DepartmentName = department.Name
+                });
+            }
+
+            return model;
+        }
+
         public async Task DeleteAsync(int id)
         {
             await _departmentRepository.DeleteAsync(id);
@@ -41,6 +92,59 @@ namespace HelpDeskApp.Services
         public async Task<List<Department>> GetAllAsync()
         {
             return await _departmentRepository.GetAllAsync();
+        }
+
+        public async Task<List<IdentityUser>> GetAllConsultantsAndDepartmentHeads()
+        {
+            var consultantList = await _accountService.GetUsersInRoleAsync("Consultant");
+            var departmentHeadList = await _accountService.GetUsersInRoleAsync("Department Head");
+
+            var users = new List<IdentityUser>();
+            users.AddRange(consultantList);
+            users.AddRange(departmentHeadList);
+
+            users = users.Distinct().ToList(); // remove duplicates
+
+            return users;
+        }
+
+        public async Task<List<ConsultantInDepartmentViewModel>> GetAvailableConsultants(int departmentId)
+        {
+            var consultants = await _accountService.GetUsersInRoleAsync("Consultant");
+            var departmentHeads = await _accountService.GetUsersInRoleAsync("Department Head");
+            var department = await GetByIdAsync(departmentId);
+
+            var model = new List<ConsultantInDepartmentViewModel>();
+
+            var availableUsers = new List<IdentityUser>();
+
+            // Both department heads and consultants are available to be assigned to the department
+
+            availableUsers.AddRange(consultants);
+            availableUsers.AddRange(departmentHeads);
+
+            // Remove duplicates
+
+            availableUsers = availableUsers.Distinct().ToList();
+
+            // Remove the head of the selected department from the list of available users
+
+            availableUsers.RemoveAll(user => user.Id == department.DepartmentHeadId);
+
+            if (availableUsers != null)
+            {
+                foreach (var user in availableUsers)
+                {
+                    model.Add(new ConsultantInDepartmentViewModel
+                    {
+                        ConsultantId = user.Id,
+                        ConsultantName = user.UserName,
+                        IsInDepartment = department.ConsultantId.Contains(user.Id)
+                    });
+                }
+            }
+
+            return model;
         }
 
         public async Task<Department> GetByIdAsync(int id)
