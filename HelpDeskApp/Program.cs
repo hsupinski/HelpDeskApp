@@ -4,64 +4,86 @@ using HelpDeskApp.Repositories;
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NLog;
+using NLog.Web;
 
-var builder = WebApplication.CreateBuilder(args);
+var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
-// Add services to the container.
-builder.Services.AddSignalR(options =>
+try
 {
-    options.EnableDetailedErrors = true;
-});
-builder.Services.AddControllersWithViews();
+    var builder = WebApplication.CreateBuilder(args);
 
-var helpDeskConnectionString = builder.Configuration.GetConnectionString("HelpDeskDbContextConnection");
-var authConnectionString = builder.Configuration.GetConnectionString("AuthDbContextConnection");
+    // Add services to the container.
+    builder.Services.AddSignalR(options =>
+    {
+        options.EnableDetailedErrors = true;
+    });
+    builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<HelpDeskDbContext>(options =>
-    options.UseSqlServer(helpDeskConnectionString));
+    var helpDeskConnectionString = builder.Configuration.GetConnectionString("HelpDeskDbContextConnection");
+    var authConnectionString = builder.Configuration.GetConnectionString("AuthDbContextConnection");
+    var loggerConnectionString = builder.Configuration.GetConnectionString("NLogConnection");
 
-builder.Services.AddDbContext<AuthDbContext>(options =>
-    options.UseSqlServer(authConnectionString));
+    builder.Services.AddDbContext<HelpDeskDbContext>(options =>
+        options.UseSqlServer(helpDeskConnectionString));
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-        .AddEntityFrameworkStores<AuthDbContext>();
+    builder.Services.AddDbContext<AuthDbContext>(options =>
+        options.UseSqlServer(authConnectionString));
 
-builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IChatService, ChatService>();
-builder.Services.AddScoped<IDepartmentService, DepartmentService>();
-builder.Services.AddScoped<ITopicService, TopicService>();
-builder.Services.AddScoped<IHelpDeskService, HelpDeskService>();
+    builder.Services.AddDbContext<LoggerDbContext>(options =>
+        options.UseSqlServer(loggerConnectionString));
 
-builder.Services.AddScoped<IChatRepository, ChatRepository>();
-builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+    builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+            .AddEntityFrameworkStores<AuthDbContext>();
 
-var app = builder.Build();
+    builder.Services.AddScoped<IAccountService, AccountService>();
+    builder.Services.AddScoped<IChatService, ChatService>();
+    builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+    builder.Services.AddScoped<ITopicService, TopicService>();
+    builder.Services.AddScoped<IHelpDeskService, HelpDeskService>();
+    builder.Services.AddScoped<ILogService, LogService>();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    builder.Services.AddScoped<IChatRepository, ChatRepository>();
+    builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+    builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+    builder.Services.AddScoped<ILogRepository, LogRepository>();
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Home/Error");
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+
+    app.UseRouting();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapHub<ChatHub>("/chatHub");
+        Console.WriteLine("ChatHub mapped to /chatHub");
+    });
+
+    app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseEndpoints(endpoints =>
+catch (Exception ex)
 {
-    endpoints.MapHub<ChatHub>("/chatHub");
-    Console.WriteLine("ChatHub mapped to /chatHub");
-});
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.Run();
+    logger.Error(ex, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    LogManager.Shutdown();
+}

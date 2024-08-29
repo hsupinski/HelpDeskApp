@@ -16,5 +16,7 @@ namespace HelpDeskApp.Repositories
         Task<List<string>> GetUserIdsInChat(int chatId);
         Task RedirectToDifferentTopic(int chatId, string newTopic);
         Task<List<Chat>> GetAllOpenChats(string userId);
+        Task<string> GetChatTopic(int chatId);
+        Task<List<Chat>> GetAllChatsByTopicName(string topicName);
     }
 }

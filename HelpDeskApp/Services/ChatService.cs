@@ -55,7 +55,9 @@ namespace HelpDeskApp.Services
             }
 
             var chat = await _chatRepository.GetChatByIdAsync(chatId);
-            
+
+            chat.IsServiced = true;
+
             var chatParticipation = new ChatParticipation
             {
                 ChatId = chatId,
@@ -162,6 +164,16 @@ namespace HelpDeskApp.Services
         public async Task<List<Chat>> GetAllOpenChats(string userId)
         {
             return await _chatRepository.GetAllOpenChats(userId);
+        }
+
+        public async Task<string> GetChatTopic(int chatId)
+        {
+            return await _chatRepository.GetChatTopic(chatId);
+        }
+
+        public async Task<List<Chat>> GetAllChatsByTopicName(string topicName)
+        {
+            return await _chatRepository.GetAllChatsByTopicName(topicName);
         }
     }
 }

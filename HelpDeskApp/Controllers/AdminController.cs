@@ -1,5 +1,4 @@
-﻿using HelpDeskApp.Models.Domain;
-using HelpDeskApp.Services;
+﻿using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using HelpDeskApp.Models.ViewModels;

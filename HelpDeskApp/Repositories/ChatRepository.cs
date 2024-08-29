@@ -138,7 +138,7 @@ namespace HelpDeskApp.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public Task RedirectToDifferentTopic(int chatId, string topicId)
+        public async Task RedirectToDifferentTopic(int chatId, string topicId)
         {
             // Change the topic of the chat and set IsServiced to false
             var chat = _context.Chats.Find(chatId);
@@ -148,7 +148,7 @@ namespace HelpDeskApp.Repositories
             chat.Topic = topicName;
             chat.IsServiced = false;
 
-            return _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateChatAsync(Chat chat)
@@ -157,13 +157,29 @@ namespace HelpDeskApp.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public Task<List<Chat>> GetAllOpenChats(string userId)
+        public async Task<List<Chat>> GetAllOpenChats(string userId)
         {
             // Returns every chat that is not closed (to be displayed for admin)
 
-            return _context.Chats
+            return await _context.Chats
                 .Include(c => c.Messages)
                 .Where(c => c.EndTime == null)
+                .ToListAsync();
+        }
+
+        public async Task<string> GetChatTopic(int chatId)
+        {
+            var chat = await GetChatByIdAsync(chatId);
+            return chat.Topic;
+        }
+
+        public Task<List<Chat>> GetAllChatsByTopicName(string topicName)
+        {
+            // chat.Topic is a topic name
+
+            return _context.Chats
+                .Include(c => c.Messages)
+                .Where(c => c.Topic == topicName)
                 .ToListAsync();
         }
     }

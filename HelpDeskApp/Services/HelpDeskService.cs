@@ -55,6 +55,9 @@ namespace HelpDeskApp.Services
                 availableChats = await _chatService.GetAvailableConsultantChats(userId);
             }
 
+            // remove duplicats
+            availableChats = availableChats.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+
             return availableChats;
         }
     }

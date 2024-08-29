@@ -9,7 +9,8 @@ namespace HelpDeskApp.Repositories
         Task AddAsync(Department department);
         Task UpdateAsync(Department department);
         Task DeleteAsync(int id);
-        Task<List<Department>> GetUserDepartments(string userId);
-
+        Task<List<Department>> GetUserDepartmentsAsync(string userId);
+        Task<List<Department>> GetDepartmentsUserIsAHeadOfAsync(string userId);
+        Task<List<Topic>> GetTopicsInDepartment(int departmentId);
     }
 }

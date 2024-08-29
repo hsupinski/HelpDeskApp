@@ -34,10 +34,13 @@
 
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        <a class="btn me-3 bg-light text-dark"
-                           asp-area=""
-                           asp-controller="Home"
-                           asp-action="Chat">New Chat</a>
+                        @if (User.IsInRole("User"))
+                        {
+                            <a class="btn me-3 bg-light text-dark"
+                               asp-area=""
+                               asp-controller="Home"
+                               asp-action="Chat">New Chat</a>
+                        }
 
                         @if (User.IsInRole("Admin") || (User.IsInRole("DepartmentHead") || (User.IsInRole("Consultant"))))
                         {
@@ -45,6 +48,11 @@
                                asp-area=""
                                asp-controller="HelpDesk"
                                asp-action="Panel">HelpDesk Panel</a>
+
+                            <a class="btn me-3 bg-light text-dark"
+                               asp-area=""
+                               asp-controller="ChatLogs"
+                               asp-action="Index">Chat Logs</a>
                         }
 
                         @if(User.IsInRole("Admin"))

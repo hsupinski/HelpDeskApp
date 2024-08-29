@@ -16,6 +16,7 @@ namespace HelpDeskApp.Services
         Task RedirectToDifferentTopic(int chatId, string newTopic);
         Task JoinChatAsConsultant(int chatId, string userId);
         Task<Chat> GetChatById(int chatId);
-
+        Task<string> GetChatTopic(int chatId);
+        Task<List<Chat>> GetAllChatsByTopicName(string topic);
     }
 }

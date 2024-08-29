@@ -34,7 +34,21 @@ namespace HelpDeskApp.Repositories
             return await _context.Departments.FindAsync(id);
         }
 
-        public async Task<List<Department>> GetUserDepartments(string userId)
+        public async Task<List<Department>> GetDepartmentsUserIsAHeadOfAsync(string userId)
+        {
+            return await _context.Departments
+                .Where(d => d.DepartmentHeadId == userId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Topic>> GetTopicsInDepartment(int departmentId)
+        {
+            return await _context.Topics
+                .Where(t => t.DepartmentIds.Contains(departmentId))
+                .ToListAsync();
+        }
+
+        public async Task<List<Department>> GetUserDepartmentsAsync(string userId)
         {
             return await _context.Departments
                 .Where(d => d.DepartmentHeadId == userId || d.ConsultantId.Contains(userId))

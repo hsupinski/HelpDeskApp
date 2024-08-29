@@ -23,7 +23,6 @@ namespace HelpDeskApp.Controllers
 
         public async Task<IActionResult> Panel()
         {
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var availableChats = await _helpDeskService.GetAvailableChats(userId);
             var model = await _helpDeskService.CreateChatDisplayViewModel(availableChats);

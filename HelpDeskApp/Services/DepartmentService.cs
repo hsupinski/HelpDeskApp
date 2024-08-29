@@ -135,11 +135,13 @@ namespace HelpDeskApp.Services
             {
                 foreach (var user in availableUsers)
                 {
+                    var isInDepartment = department.ConsultantId?.Contains(user.Id);
+
                     model.Add(new ConsultantInDepartmentViewModel
                     {
                         ConsultantId = user.Id,
                         ConsultantName = user.UserName,
-                        IsInDepartment = department.ConsultantId.Contains(user.Id)
+                        IsInDepartment = isInDepartment ?? false
                     });
                 }
             }
@@ -152,9 +154,19 @@ namespace HelpDeskApp.Services
             return await _departmentRepository.GetByIdAsync(id);
         }
 
+        public async Task<List<Department>> GetDepartmentsUserIsAHeadOfAsync(string userId)
+        {
+            return await _departmentRepository.GetDepartmentsUserIsAHeadOfAsync(userId);
+        }
+
+        public async Task<List<Topic>> GetTopicsInDepartment(int departmentId)
+        {
+            return await _departmentRepository.GetTopicsInDepartment(departmentId);
+        }
+
         public async Task<List<Department>> GetUserDepartments(string userId)
         {
-            return await _departmentRepository.GetUserDepartments(userId);
+            return await _departmentRepository.GetUserDepartmentsAsync(userId);
         }
 
         public async Task UpdateAsync(Department department, string departmentHeadId)

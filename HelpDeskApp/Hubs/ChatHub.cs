@@ -3,6 +3,7 @@ using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.SignalR;
+using NLog;
 
 namespace HelpDeskApp.Hubs
 {
@@ -11,6 +12,7 @@ namespace HelpDeskApp.Hubs
         private readonly HelpDeskDbContext _context;
         private readonly IAccountService _accountService;
         private readonly IChatService _chatService;
+        private readonly NLog.ILogger _logger = LogManager.GetCurrentClassLogger();
 
         public ChatHub(HelpDeskDbContext helpDeskDbContext, IAccountService accountService, IChatService chatService)
         {
@@ -29,7 +31,19 @@ namespace HelpDeskApp.Hubs
 
 
             if(!userRoles.Contains("Admin"))
-            { 
+            {
+
+                var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Joined chat");
+                logEvent.Properties["EventType"] = "ChatJoined";
+                logEvent.Properties["UserId"] = Context.UserIdentifier;
+                logEvent.Properties["ChatId"] = chatId;
+                logEvent.Properties["Topic"] = await _chatService.GetChatTopic(Int32.Parse(chatId));
+
+                _logger.Log(logEvent);
+
+                ScopeContext.Clear();
+
+
                 await Clients.Group(chatId).SendAsync("UserJoined", Context.UserIdentifier, username);
                 await BroadcastUserList(chatId);
             }
@@ -65,6 +79,15 @@ namespace HelpDeskApp.Hubs
                     Chat = chat
                 };
 
+                var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", message);
+                logEvent.Properties["EventType"] = "MessageSent";
+                logEvent.Properties["UserId"] = userId;
+                logEvent.Properties["ChatId"] = chatId;
+                logEvent.Properties["Content"] = message;
+                logEvent.Properties["Topic"] = await _chatService.GetChatTopic(chatIdAsInt);
+
+                _logger.Log(logEvent);
+
                 _context.Messages.Add(newMessage);
                 await _context.SaveChangesAsync();
 
@@ -92,6 +115,14 @@ namespace HelpDeskApp.Hubs
 
             if (!userRoles.Contains("Admin"))
             {
+                var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Left chat");
+                logEvent.Properties["EventType"] = "ChatLeft";
+                logEvent.Properties["UserId"] = Context.UserIdentifier;
+                logEvent.Properties["ChatId"] = chatId;
+                logEvent.Properties["Topic"] = await _chatService.GetChatTopic(Int32.Parse(chatId));
+
+                _logger.Log(logEvent);
+
                 await Clients.Group(chatId).SendAsync("UserLeft", Context.UserIdentifier, username);
                 await BroadcastUserList(chatId);
             }
@@ -101,6 +132,17 @@ namespace HelpDeskApp.Hubs
         public async Task ChangeChatTopic(string chatId, string topicId)
         {
             await _chatService.RedirectToDifferentTopic(Int32.Parse(chatId), topicId);
+
+            var topic = await _chatService.GetChatTopic(Int32.Parse(chatId));
+
+            var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Topic changed");
+            logEvent.Properties["EventType"] = "TopicChanged";
+            logEvent.Properties["UserId"] = Context.UserIdentifier;
+            logEvent.Properties["ChatId"] = chatId;
+            logEvent.Properties["Topic"] = topic;
+            logEvent.Properties["Content"] = "$Chat topic changed to " + topic;
+
+            _logger.Log(logEvent);
 
             await Clients.Group(chatId).SendAsync("TopicChanged", topicId);
         }
