@@ -17,82 +17,70 @@ function startConnection() {
 
 startConnection();
 
-connection.onreconnecting((error) => {
-    console.log("Connection lost. Attempting to reconnect...", error);
-    if (error && error.message.includes("dotnet-watch reload socket error")) {
-        console.log("dotnet-watch reload socket error detected. Reloading page...");
-        location.reload();
-    }
-});
-
-connection.onreconnected((connectionId) => {
-    console.log("Connection reestablished. ConnectionId:", connectionId);
-    connection.invoke("JoinConsultantPanel", "@User.Identity.Name");
-});
-
-connection.onclose((error) => {
-    console.log("Connection closed. Error:", error);
-    if (error && error.message.includes("dotnet-watch reload socket closed")) {
-        console.log("dotnet-watch reload socket closed detected. Reloading page...");
-        location.reload();
-    } else {
-        setTimeout(startConnection, 5000);
-    }
-});
-
 connection.on("ErrorOccurred", (errorMessage) => {
     console.error("Server error:", errorMessage);
 });
 
-connection.on("ReceiveRelevantChats", (chats) => {
-    console.log("Received relevant chats:", chats);
-    updateChatList(chats);
-});
-
 connection.on("NewChatCreated", (chat) => {
     console.log("Received new chat created message:", chat);
-    addChatToList(chat);
-});
-
-connection.on("ChatTopicChanged", (chat) => {
-    console.log("Received chat topic changed message:", chat);
-    updateChatInList(chat);
-});
-
-function updateChatList(chats) {
-    console.log("Updating chat list with:", chats);
-    const chatList = document.getElementById("chatList");
-    chatList.innerHTML = "";
-    chats.forEach(chat => {
+    if (isChatRelevant(chat)) {
+        if (inChatOnList(chat)) {
+            removeChatFromList(chat);
+        }
         addChatToList(chat);
-    });
+    }
+
+    if (!isChatRelevant(chat) && inChatOnList(chat)) {
+        removeChatFromList(chat);
+    }   
+});
+
+connection.on("ChatRemoved", (chat) => {
+    console.log("Received chat removed message:", chat);
+
+    // Check if the chat is on the list
+    if(inChatOnList(chat))
+        removeChatFromList(chat);
+});
+
+function isChatRelevant(chat) {
+    // Check if the chat's topic is in the user's topics
+    console.log(userTopics, chat.topicName, userTopics.includes(chat.topicName))
+
+    return userTopics.includes(chat.topicName);
+}
+
+function inChatOnList(chat) {
+    // Check if chat is already in the list
+    console.log(chatIds, chat.chatId, chatIds.includes(chat.chatId))
+
+    return chatIds.includes(chat.chatId);
+}
+
+function removeChatFromList(chat) {
+    console.log("Removing chat from list:", chat);
+    const chatElement = document.getElementById(`chat-${chat.chatId}`);
+    if (chatElement) {
+        console.log("Removing chat element:", chatElement);
+        chatElement.remove();
+    }
 }
 
 function addChatToList(chat) {
     console.log("Adding chat to list:", chat);
     const chatList = document.getElementById("chatList");
     const li = document.createElement("li");
+    li.id = `chat-${chat.chatId}`;
     li.className = "list-group-item d-flex justify-content-between align-items-center";
     li.innerHTML = `
-        ${chat.topicName} -
-        ${chat.usernamesInChat && chat.usernamesInChat.length > 0
+        <span class="chat-topic">${chat.topicName}</span> -
+        <span class="chat-users">
+            ${chat.usernamesInChat && chat.usernamesInChat.length > 0
             ? chat.usernamesInChat.join(", ")
             : '<span class="badge bg-secondary rounded-pill">0</span>'}
+        </span>
         <a href="/HelpDesk/JoinChat?chatId=${chat.chatId}"
            class="btn btn-secondary btn-sm">Join Chat</a>
     `;
     chatList.appendChild(li);
-}
-
-function updateChatInList(chat) {
-    console.log("Updating chat in list:", chat);
-    const chatItems = document.querySelectorAll("chatlist");
-    if (!chatlist) {
-        console.error("Chat list not found");
-        return;
-    }
-    chatList.innerHTML = "";
-    chats.forEach(chat => {
-        addChatToList(chat);
-    });
 }

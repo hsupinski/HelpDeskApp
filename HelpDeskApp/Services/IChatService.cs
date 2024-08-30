@@ -18,5 +18,6 @@ namespace HelpDeskApp.Services
         Task<Chat> GetChatById(int chatId);
         Task<string> GetChatTopic(int chatId);
         Task<List<Chat>> GetAllChatsByTopicName(string topic);
+        Task<bool> CheckChatValidity(int chatId, string userId);
     }
 }

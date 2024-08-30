@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using HelpDeskApp.Models.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace HelpDeskApp.Controllers
 {
@@ -12,11 +13,13 @@ namespace HelpDeskApp.Controllers
     {
         private readonly IDepartmentService _departmentService;
         private readonly IAccountService _accountService;
+        private readonly ITopicService _topicService;
 
-        public DepartmentController(IDepartmentService departmentService, IAccountService accountService)
+        public DepartmentController(IDepartmentService departmentService, IAccountService accountService, ITopicService topicService)
         {
             _departmentService = departmentService;
             _accountService = accountService;
+            _topicService = topicService;
         }
 
         public async Task<IActionResult> Index()
@@ -41,7 +44,13 @@ namespace HelpDeskApp.Controllers
         public async Task<IActionResult> Create(Department department, string departmentHeadId)
         {
             await _departmentService.CreateDepartment(department, departmentHeadId);
-            
+
+            var redirectTopic = new Topic();
+            redirectTopic.Name = "Redirect to: " + department.Name;
+            redirectTopic.DepartmentIds = new List<int> { department.Id };
+
+            await _topicService.AddAsync(redirectTopic);
+
             return RedirectToAction("Index");
         }
 
@@ -112,6 +121,8 @@ namespace HelpDeskApp.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             await _departmentService.DeleteAsync(id);
+            await _topicService.DeleteTopicsWithoutDepartment();
+
             return RedirectToAction(nameof(Index));
         }
     }

@@ -9,6 +9,7 @@ namespace HelpDeskApp.Repositories
         Task<Topic> GetByIdAsync(int id);
         Task UpdateAsync(Topic topic);
         Task DeleteAsync(int id);
+        Task DeleteTopicsWithoutDepartment();
         Task<List<Topic>> GetTopicsByDepartmentId(int departmentId);
     }
 }

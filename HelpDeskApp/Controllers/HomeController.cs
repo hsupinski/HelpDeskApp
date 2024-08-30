@@ -33,7 +33,7 @@ namespace HelpDeskApp.Controllers
                 return RedirectToAction("Chat", new { chatId = activeChat.Id });
             }
 
-            if(userRole == "User")
+            if (userRole == "User")
             {
                 return RedirectToAction("ChooseTopic");
             }
@@ -47,12 +47,17 @@ namespace HelpDeskApp.Controllers
         {
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
-            if(userRole != "User")
+            if (userRole != "User")
             {
                 return RedirectToAction("Index");
             }
 
             var topics = await _topicService.GetAllAsync();
+
+            // Remove all topics that start with "Redirect to:"
+
+            topics = topics.Where(t => !t.Name.StartsWith("Redirect to:")).ToList();
+
             return View(topics);
         }
 
@@ -159,7 +164,7 @@ namespace HelpDeskApp.Controllers
                 }
             }
 
-            else if(userRole == "Admin")
+            else if (userRole == "Admin")
             {
                 // Leave chat silently
                 await _chatService.LeaveChatAsync(userId);

@@ -175,5 +175,31 @@ namespace HelpDeskApp.Services
         {
             return await _chatRepository.GetAllChatsByTopicName(topicName);
         }
+
+        public async Task<bool> CheckChatValidity(int chatId, string userId)
+        {
+            var user = await _accountService.GetUserByIdAsync(userId);
+            var chat = await _chatRepository.GetChatByIdAsync(chatId);
+
+            var departmentList = await _departmentService.GetUserDepartments(userId);
+            var topicList = new List<Topic>();
+            foreach (var department in departmentList)
+            {
+                var topics = await _topicService.GetTopicsByDepartmentId(department.Id);
+                topicList.AddRange(topics);
+            }
+
+            if(chat.EndTime != null) // Chat is closed
+            {
+                return false;
+            }
+
+            if (topicList.Any(t => t.Name == chat.Topic)) // Chat topic belongs to the consultant's department
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

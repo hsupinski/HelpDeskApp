@@ -1,30 +1,43 @@
 ﻿@model List<HelpDeskApp.Models.ViewModels.JoinChatItemViewModel>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="container mt-4">
     <h2>Consultant Panel</h2>
-
     <div class="row">
         <div class="col-md-6">
             <h3>Available Chats</h3>
             <ul id="chatList" class="list-group">
                 @foreach (var chat in Model)
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        @chat.topicName - 
-                        @if(chat.usernamesInChat != null && chat.usernamesInChat.Count > 0)
-                        {
-                            @foreach (var user in chat.usernamesInChat)
+                    <li id="chat-@chat.chatId" class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="chat-topic">@chat.topicName</span> -
+                        <span class="chat-users">
+                            @if (chat.usernamesInChat != null && chat.usernamesInChat.Count > 0)
                             {
-                                @user
+                                @string.Join(", ", chat.usernamesInChat)
                             }
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary rounded-pill">0</span>
-                        }
-
-                        <a href="@Url.Action("JoinChat", "HelpDesk", new { chatId = chat.chatId })" 
-                            class="btn btn-secondary btn-sm">Join Chat</a>
+                            else
+                            {
+                                <span class="badge bg-secondary rounded-pill">0</span>
+                            }
+                        </span>
+                        <a href="@Url.Action("JoinChat", "HelpDesk", new { chatId = chat.chatId })"
+                           class="btn btn-secondary btn-sm">Join Chat</a>
                     </li>
                 }
             </ul>
@@ -34,5 +47,9 @@
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+        var userTopics = @Json.Serialize(ViewBag.Topics)
+        var chatIds = @Json.Serialize(ViewBag.ChatIds)
+    </script>
     <script src="~/js/panel.js"></script>
 }

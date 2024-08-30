@@ -62,10 +62,16 @@ namespace HelpDeskApp.Services
                 DepartmentNames = new List<string>()
             };
 
-            foreach (var departmentId in topic.DepartmentIds)
+            if(topic.DepartmentIds != null)
             {
-                var department = await _departmentService.GetByIdAsync(departmentId);
-                topicViewModel.DepartmentNames.Add(department.Name);
+                foreach (var departmentId in topic.DepartmentIds)
+                {
+                    var department = await _departmentService.GetByIdAsync(departmentId);
+                    if(department != null)
+                    {
+                        topicViewModel.DepartmentNames.Add(department.Name);
+                    }
+                }
             }
 
             return topicViewModel;
@@ -95,6 +101,11 @@ namespace HelpDeskApp.Services
         {
             _context.Topics.Update(topic);
             await _context.SaveChangesAsync();
+        }
+
+        public Task DeleteTopicsWithoutDepartment()
+        {
+            return _topicRepository.DeleteTopicsWithoutDepartment();
         }
     }
 }

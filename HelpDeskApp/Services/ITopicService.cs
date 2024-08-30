@@ -10,6 +10,7 @@ namespace HelpDeskApp.Services
         Task<Topic> GetByIdAsync(int id);
         Task UpdateAsync(Topic topic);
         Task DeleteAsync(int id);
+        Task DeleteTopicsWithoutDepartment();
         Task<List<Topic>> GetTopicsByDepartmentId(int departmentId);
         Task<List<TopicViewModel>> CreateTopicViewModelList(List<Topic> topicList);
         Task<TopicViewModel> CreateTopicViewModel(Topic topic);

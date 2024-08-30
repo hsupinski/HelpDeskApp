@@ -21,6 +21,14 @@ namespace HelpDeskApp.Repositories
         public async Task DeleteAsync(int id)
         {
             _context.Departments.Remove(await _context.Departments.FindAsync(id));
+
+            // Remove all instances of this department from the Topics table
+
+            var topics = await _context.Topics.ToListAsync();
+            foreach (var topic in topics) {
+                topic.DepartmentIds.Remove(id);
+            }
+
             await _context.SaveChangesAsync();
         }
 

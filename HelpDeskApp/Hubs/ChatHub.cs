@@ -132,6 +132,25 @@ namespace HelpDeskApp.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatId);
             var username = await _accountService.GetUsernameById(Context.UserIdentifier);
 
+            var chat = await _chatService.GetChatById(Int32.Parse(chatId));
+
+            if(chat.Participants.Count == 0)
+            {
+                // chat is being removed, send message to consultant panel
+
+                var model = new JoinChatItemViewModel
+                {
+                    chatId = chat.Id,
+                    topicName = chat.Topic,
+                    usernamesInChat = new List<string>()
+                };
+
+                model.usernamesInChat.Add(username);
+
+                await Clients.Group("ConsultantPanel").SendAsync("ChatRemoved", model);
+                Console.WriteLine("Chat removed, sent to consultant panel.");
+            }
+
             if (!userRoles.Contains("Admin"))
             {
                 var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Left chat");
@@ -152,16 +171,33 @@ namespace HelpDeskApp.Hubs
         {
             await _chatService.RedirectToDifferentTopic(Int32.Parse(chatId), topicId);
 
-            var topic = await _chatService.GetChatTopic(Int32.Parse(chatId));
+            var topicName = await _chatService.GetChatTopic(Int32.Parse(chatId));
 
             var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Topic changed");
             logEvent.Properties["EventType"] = "TopicChanged";
             logEvent.Properties["UserId"] = Context.UserIdentifier;
             logEvent.Properties["ChatId"] = chatId;
-            logEvent.Properties["Topic"] = topic;
-            logEvent.Properties["Content"] = "$Chat topic changed to " + topic;
+            logEvent.Properties["Topic"] = topicName;
+            logEvent.Properties["Content"] = "$Chat topic changed to " + topicName;
 
             _logger.Log(logEvent);
+
+
+            var model = new JoinChatItemViewModel
+            {
+                chatId = Int32.Parse(chatId),
+                topicName = topicName,
+                usernamesInChat = new List<string>()
+            };
+
+            foreach (var userId in await _chatService.GetUsersInChat(Int32.Parse(chatId)))
+            {
+                model.usernamesInChat.Add(await _accountService.GetUsernameById(userId));
+            }
+
+            await Clients.Group("ConsultantPanel").SendAsync("NewChatCreated", model);
+            Console.WriteLine("Chat topic changed, sent new chat created notification to consultant panel.");
+
 
             var chat = await _chatService.GetChatById(Int32.Parse(chatId));
 

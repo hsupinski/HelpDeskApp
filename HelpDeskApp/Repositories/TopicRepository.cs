@@ -24,6 +24,12 @@ namespace HelpDeskApp.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task DeleteTopicsWithoutDepartment()
+        {
+            _context.Topics.RemoveRange(_context.Topics.Where(t => t.DepartmentIds.Count == 0));
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<List<Topic>> GetAllAsync()
         {
             _context.Topics.ToList();

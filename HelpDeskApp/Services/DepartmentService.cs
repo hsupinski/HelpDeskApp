@@ -11,11 +11,13 @@ namespace HelpDeskApp.Services
         private readonly HelpDeskDbContext _context;
         private readonly IAccountService _accountService;
         private readonly IDepartmentRepository _departmentRepository;
-        public DepartmentService(HelpDeskDbContext helpDeskDbContext, IAccountService accountService, IDepartmentRepository departmentRepository)
+
+        public DepartmentService(IAccountService accountService, 
+            IDepartmentRepository departmentRepository, HelpDeskDbContext context)
         {
-            _context = helpDeskDbContext;
             _accountService = accountService;
             _departmentRepository = departmentRepository;
+            _context = context;
         }
 
         public async Task AddAsync(Department department, string departmentHeadId)
