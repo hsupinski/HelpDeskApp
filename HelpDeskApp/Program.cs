@@ -66,11 +66,12 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapHub<ChatHub>("/chatHub");
-        Console.WriteLine("ChatHub mapped to /chatHub");
-    });
+
+    app.MapHub<ChatHub>("/chatHub");
+    Console.WriteLine("ChatHub mapped to /chatHub");
+    app.MapHub<ConsultantHub>("/consultantHub");
+    Console.WriteLine("ConsultantHub mapped to /consultantHub");
+
 
     app.MapControllerRoute(
         name: "default",

@@ -78,8 +78,6 @@ namespace HelpDeskApp.Repositories
 
             foreach (var topic in topicList)
             {
-                Console.WriteLine(topic.Name);
-
                 var chats = _context.Chats
                     .Include(c => c.Messages)
                     .Where(c => c.EndTime == null

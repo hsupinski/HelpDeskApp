@@ -18,5 +18,9 @@
     <PackageReference Include="NLog.Database" Version="5.3.3" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.12" />
   </ItemGroup>
+  
+  <ItemGroup>
+  <Watch Include="**\*.cs" Exclude="obj\**\*;bin\**\*" />
+  </ItemGroup>
 
 </Project>

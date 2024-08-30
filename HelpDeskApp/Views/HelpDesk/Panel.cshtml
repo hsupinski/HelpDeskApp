@@ -1,37 +1,38 @@
-﻿@model List<HelpDeskApp.Models.ViewModels.ChatDisplayInHelpDeskViewModel>
+﻿@model List<HelpDeskApp.Models.ViewModels.JoinChatItemViewModel>
 
 <div class="container mt-4">
     <h2>Consultant Panel</h2>
 
     <div class="row">
-@*         <div class="col-md-6">
-            <h3>Active Chats</h3>
-            <ul class="list-group">
-                @foreach (var chat in Model.Where(c => c.isCurrentConsultantInChat))
-                {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        @chat.topicName
-                        <a href="@Url.Action("JoinChat", "HelpDesk", new { chatId = chat.chatId })" class="btn btn-primary btn-sm">Enter Chat</a>
-                    </li>
-                }
-            </ul>
-        </div> *@
-
         <div class="col-md-6">
             <h3>Available Chats</h3>
-            <ul class="list-group">
-                @foreach (var chat in Model.Where(c => !c.isCurrentConsultantInChat))
+            <ul id="chatList" class="list-group">
+                @foreach (var chat in Model)
                 {
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         @chat.topicName - 
-                        @foreach(var user in chat.usernamesInChat)
+                        @if(chat.usernamesInChat != null && chat.usernamesInChat.Count > 0)
                         {
-                            @user 
+                            @foreach (var user in chat.usernamesInChat)
+                            {
+                                @user
+                            }
                         }
-                        <a href="@Url.Action("JoinChat", "HelpDesk", new { chatId = chat.chatId })" class="btn btn-secondary btn-sm">Join Chat</a>
+                        else
+                        {
+                            <span class="badge bg-secondary rounded-pill">0</span>
+                        }
+
+                        <a href="@Url.Action("JoinChat", "HelpDesk", new { chatId = chat.chatId })" 
+                            class="btn btn-secondary btn-sm">Join Chat</a>
                     </li>
                 }
             </ul>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script src="~/js/panel.js"></script>
+}

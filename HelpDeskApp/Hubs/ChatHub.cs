@@ -32,6 +32,25 @@ namespace HelpDeskApp.Hubs
 
             if(!userRoles.Contains("Admin"))
             {
+                var chat = await _chatService.GetChatById(Int32.Parse(chatId));
+
+                if (chat.Participants.Count == 0) 
+                {
+                    // new chat, send message to consultant panel
+
+                    var model = new JoinChatItemViewModel
+                    {
+                        chatId = chat.Id,
+                        topicName = chat.Topic,
+                        usernamesInChat = new List<string>()
+                    };
+
+                    model.usernamesInChat.Add(username);
+
+                    await Clients.Group("ConsultantPanel").SendAsync("NewChatCreated", model);
+                    Console.WriteLine("New chat created, sent to consultant panel.");
+                }
+
 
                 var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Joined chat");
                 logEvent.Properties["EventType"] = "ChatJoined";
@@ -43,7 +62,7 @@ namespace HelpDeskApp.Hubs
 
                 ScopeContext.Clear();
 
-
+                
                 await Clients.Group(chatId).SendAsync("UserJoined", Context.UserIdentifier, username);
                 await BroadcastUserList(chatId);
             }
@@ -144,7 +163,10 @@ namespace HelpDeskApp.Hubs
 
             _logger.Log(logEvent);
 
+            var chat = await _chatService.GetChatById(Int32.Parse(chatId));
+
             await Clients.Group(chatId).SendAsync("TopicChanged", topicId);
+            await Clients.Group("ConsultantPanel").SendAsync("TopicChanged", chat);
         }
 
         public async Task BroadcastUserList(string chatId)
@@ -159,6 +181,25 @@ namespace HelpDeskApp.Hubs
                 idWithUsername.Add(new IdWithUsernameViewModel { id = userId, username = username });
             }
             await Clients.Group(chatId).SendAsync("UpdateUserList", idWithUsername);
+        }
+
+        public async Task JoinConsultantPanel()
+        {
+            try
+            {
+                Console.WriteLine($"Consultant with ID {Context.UserIdentifier} joined the consultant panel.");
+                await Groups.AddToGroupAsync(Context.ConnectionId, "ConsultantPanel");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in JoinConsultantPanel: {ex.Message}");
+                await Clients.Caller.SendAsync("ErrorOccurred", "An error occurred while fetching chats.");
+            }
+        }
+
+        public async Task LeaveConsultantPanel()
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, "ConsultantPanel");
         }
     }
 }

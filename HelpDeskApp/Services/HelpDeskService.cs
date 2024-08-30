@@ -14,9 +14,9 @@ namespace HelpDeskApp.Services
             _accountService = accountService;
             _chatService = chatService;
         }
-        public async Task<List<ChatDisplayInHelpDeskViewModel>> CreateChatDisplayViewModel(List<Chat> availableChats)
+        public async Task<List<JoinChatItemViewModel>> CreateChatDisplayViewModel(List<Chat> availableChats)
         {
-            var model = new List<ChatDisplayInHelpDeskViewModel>();
+            var model = new List<JoinChatItemViewModel>();
 
             foreach (var chat in availableChats)
             {
@@ -29,7 +29,7 @@ namespace HelpDeskApp.Services
                     usernames.Add(username + " ");
                 }
 
-                model.Add(new ChatDisplayInHelpDeskViewModel
+                model.Add(new JoinChatItemViewModel
                 {
                     chatId = chat.Id,
                     topicName = chat.Topic,
@@ -55,7 +55,7 @@ namespace HelpDeskApp.Services
                 availableChats = await _chatService.GetAvailableConsultantChats(userId);
             }
 
-            // remove duplicats
+            // remove duplicates
             availableChats = availableChats.GroupBy(x => x.Id).Select(x => x.First()).ToList();
 
             return availableChats;
