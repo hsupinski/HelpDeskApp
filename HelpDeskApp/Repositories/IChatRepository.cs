@@ -20,5 +20,6 @@ namespace HelpDeskApp.Repositories
         Task<List<Chat>> GetAllChatsByTopicName(string topicName);
         Task SetChatSaved(int chatId, bool isSaved);
         Task<bool> IsChatSaved(int chatId);
+        Task SetMoreInfo(int chatId, string moreInfo);
     }
 }

@@ -42,10 +42,18 @@ namespace HelpDeskApp.Hubs
                     {
                         chatId = chat.Id,
                         topicName = chat.Topic,
-                        usernamesInChat = new List<string>()
+                        usernamesInChat = new List<string>(),
+                        isServiced = chat.IsServiced
                     };
 
-                    model.usernamesInChat.Add(username);
+                    foreach (var userId in await _chatService.GetUsersInChat(Int32.Parse(chatId)))
+                    {
+                        var _userRoles = await _accountService.GetUserRolesAsync(await _accountService.GetUserByIdAsync(userId));
+                        if(!_userRoles.Contains("Admin"))
+                            model.usernamesInChat.Add(await _accountService.GetUsernameById(userId));
+                    }
+
+                    //model.usernamesInChat.Add(username);
 
                     await Clients.Group("ConsultantPanel").SendAsync("NewChatCreated", model);
                     Console.WriteLine("New chat created, sent to consultant panel.");
@@ -144,7 +152,8 @@ namespace HelpDeskApp.Hubs
                 {
                     chatId = chat.Id,
                     topicName = chat.Topic,
-                    usernamesInChat = new List<string>()
+                    usernamesInChat = new List<string>(),
+                    isServiced = chat.IsServiced
                 };
 
                 model.usernamesInChat.Add(username);
@@ -169,9 +178,9 @@ namespace HelpDeskApp.Hubs
 
         }
 
-        public async Task ChangeChatTopic(string chatId, string topicId)
+        public async Task ChangeChatTopic(string chatId, string topicId, string moreInfo)
         {
-            await _chatService.RedirectToDifferentTopic(Int32.Parse(chatId), topicId);
+            await _chatService.RedirectToDifferentTopic(Int32.Parse(chatId), topicId, moreInfo);
 
             var topicName = await _chatService.GetChatTopic(Int32.Parse(chatId));
 

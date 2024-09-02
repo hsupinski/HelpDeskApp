@@ -36,9 +36,15 @@
                                 <span class="badge bg-secondary rounded-pill">0</span>
                             }
                         </span>
+@*                         @if(chat.moreInfo != null)
+                        {
+                            <span class="chat-moreInfo">@chat.moreInfo</span>
+                        } *@
                         <a href="@Url.Action("JoinChat", "HelpDesk", new { chatId = chat.chatId })"
                            class="btn btn-secondary btn-sm">Join Chat</a>
+                        
                     </li>
+
                 }
             </ul>
         </div>

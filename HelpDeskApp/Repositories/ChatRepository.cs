@@ -194,5 +194,13 @@ namespace HelpDeskApp.Repositories
             var chat = await GetChatByIdAsync(chatId);
             return chat.IsSaved;
         }
+
+        public async Task SetMoreInfo(int chatId, string moreInfo)
+        {
+            var chat = await GetChatByIdAsync(chatId);
+            chat.MoreInfo = moreInfo;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

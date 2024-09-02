@@ -10,5 +10,6 @@
         public bool IsServiced { get; set; } = false; // Is the chat handled by an agent
         public List<Message> Messages { get; set; } = new List<Message>();
         public List<ChatParticipation> Participants { get; set; } = new List<ChatParticipation>();
+        public string? MoreInfo { get; set; }
     }
 }

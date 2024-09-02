@@ -33,7 +33,8 @@ namespace HelpDeskApp.Services
                 {
                     chatId = chat.Id,
                     topicName = chat.Topic,
-                    usernamesInChat = usernames
+                    usernamesInChat = usernames,
+                    moreInfo = chat.MoreInfo,
                 });
             }
 

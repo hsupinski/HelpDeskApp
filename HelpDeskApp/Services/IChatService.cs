@@ -13,7 +13,7 @@ namespace HelpDeskApp.Services
         Task<List<Chat>> GetAvailableConsultantChats(string userId);
         Task<List<Chat>> GetAllOpenChats(string userId);
         Task<List<string>> GetUsersInChat(int chatId);
-        Task RedirectToDifferentTopic(int chatId, string newTopic);
+        Task RedirectToDifferentTopic(int chatId, string newTopic, string moreInfo);
         Task JoinChatAsConsultant(int chatId, string userId);
         Task<Chat> GetChatById(int chatId);
         Task<string> GetChatTopic(int chatId);

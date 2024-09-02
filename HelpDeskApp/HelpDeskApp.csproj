@@ -22,5 +22,9 @@
   <ItemGroup>
   <Watch Include="**\*.cs" Exclude="obj\**\*;bin\**\*" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Watch Remove="Hubs\NotificationHub.cs" />
+  </ItemGroup>
 
 </Project>

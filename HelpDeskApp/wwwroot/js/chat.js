@@ -144,7 +144,11 @@ function leaveChat() {
 function changeTopic() {
     const chatId = document.getElementById("chatId").value;
     const newTopicId = document.getElementById("topicSelect").value;
-    connection.invoke("ChangeChatTopic", chatId, newTopicId)
+    const moreInfo = document.getElementById("moreInfo").value;
+
+    console.log(moreInfo);
+
+    connection.invoke("ChangeChatTopic", chatId, newTopicId, moreInfo)
         .then(() => console.log("Topic changed successfully"))
         .catch(err => console.error("Error changing topic:", err.toString()));
 }

@@ -24,16 +24,18 @@ connection.on("ErrorOccurred", (errorMessage) => {
 connection.on("NewChatCreated", (chat) => {
     console.log("Received new chat created message:", chat);
     console.log("Is chat relevant:", isChatRelevant(chat));
-    console.log("Is chat on list:", inChatOnList(chat));
+    console.log("Is chat on list:", isChatOnList(chat));
 
     if (isChatRelevant(chat)) {
-        if (inChatOnList(chat)) {
-            removeChatFromList(chat);
-        }
+        removeChatFromList(chat);
         addChatToList(chat);
     }
 
-    if (!isChatRelevant(chat) && inChatOnList(chat)) {
+    if (isChatServiced(chat)) {
+        removeChatFromList(chat);
+    }
+
+    if (!isChatRelevant(chat) && isChatOnList(chat)) {
         setTimeout(() => {
             removeChatFromList(chat);
         }, 100);
@@ -44,8 +46,8 @@ connection.on("ChatRemoved", (chat) => {
     console.log("Received chat removed message:", chat);
 
     // Check if the chat is on the list
-    if(inChatOnList(chat))
-        removeChatFromList(chat);
+    
+    removeChatFromList(chat);
 });
 
 function isChatRelevant(chat) {
@@ -55,25 +57,30 @@ function isChatRelevant(chat) {
     return userTopics.includes(chat.topicName);
 }
 
-function inChatOnList(chat) {
+function isChatOnList(chat) {
     // Check if chat is already in the list
     console.log(chatIds, chat.chatId, chatIds.includes(chat.chatId))
 
     return chatIds.includes(chat.chatId);
 }
 
+function isChatServiced(chat) {
+    // Check if chat is already serviced
+    return chat.isServiced;
+}
+
 function removeChatFromList(chat) {
-/*    console.log("Removing chat from list:", chat);
+    console.log("Removing chat from list:", chat);
     const chatElement = document.getElementById(`chat-${chat.chatId}`);
     if (chatElement) {
         console.log("Removing chat element:", chatElement);
         chatElement.remove();
-    }*/
-    location.reload();
+    }
+    //location.reload();
 }
 
 function addChatToList(chat) {
-/*    console.log("Adding chat to list:", chat);
+    console.log("Adding chat to list:", chat);
     const chatList = document.getElementById("chatList");
     const li = document.createElement("li");
     li.id = `chat-${chat.chatId}`;
@@ -88,6 +95,6 @@ function addChatToList(chat) {
         <a href="/HelpDesk/JoinChat?chatId=${chat.chatId}"
            class="btn btn-secondary btn-sm">Join Chat</a>
     `;
-    chatList.appendChild(li);*/
-    location.reload();
+    chatList.appendChild(li);
+    //location.reload();
 }

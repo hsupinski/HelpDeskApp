@@ -69,9 +69,8 @@ try
 
     app.MapHub<ChatHub>("/chatHub");
     Console.WriteLine("ChatHub mapped to /chatHub");
-    app.MapHub<ConsultantHub>("/consultantHub");
-    Console.WriteLine("ConsultantHub mapped to /consultantHub");
-
+    app.MapHub<NotificationHub>("/notificationHub");
+    Console.WriteLine("NotificationHub mapped to /notificationHub");
 
     app.MapControllerRoute(
         name: "default",

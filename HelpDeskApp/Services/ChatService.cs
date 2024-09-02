@@ -1,6 +1,8 @@
-﻿using HelpDeskApp.Models.Domain;
+﻿using HelpDeskApp.Hubs;
+using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Repositories;
+using Microsoft.AspNetCore.SignalR;
 
 namespace HelpDeskApp.Services
 {
@@ -11,14 +13,16 @@ namespace HelpDeskApp.Services
         private readonly ITopicService _topicService;
         private readonly IDepartmentService _departmentService;
         private readonly ILogRepository _logRepository;
+        private readonly IHubContext<NotificationHub> _notificationHubContext;
         public ChatService(IChatRepository chatRepository, IAccountService accountService, ITopicService topicService, 
-            IDepartmentService departmentService, ILogRepository logRepository)
+            IDepartmentService departmentService, ILogRepository logRepository, IHubContext<NotificationHub> hubContext)
         {
             _chatRepository = chatRepository;
             _accountService = accountService;
             _topicService = topicService;
             _departmentService = departmentService;
             _logRepository = logRepository;
+            _notificationHubContext = hubContext;
         }
         public async Task<Chat> CreateChatAsync(string userId, int topicId)
         {
@@ -41,6 +45,10 @@ namespace HelpDeskApp.Services
             };
 
             await _chatRepository.CreateChatAsync(chat);
+
+            string message = "New chat created for topic: " + topic.Name;
+            await _notificationHubContext.Clients.Group($"Topic-{topicId}").SendAsync("ReceiveNotification", message);
+            Console.WriteLine("Notification sent to consultants.");
 
             return chat;
         }
@@ -154,6 +162,16 @@ namespace HelpDeskApp.Services
                 await _logRepository.RemoveUserLogs(userId, chat.Id);
             }
 
+            var user = await _accountService.GetUserByIdAsync(userId);
+            var userRoles = await _accountService.GetUserRolesAsync(user);
+
+            if (userRoles.Contains("User"))
+            {
+                string message = "User left the chat: " + user.UserName;
+                await _notificationHubContext.Clients.Group($"Topic-{chat.Topic}").SendAsync("ReceiveNotification", message);
+                Console.WriteLine("Notification sent to consultants.");
+            }
+
             await _chatRepository.LeaveChatAsync(userId);
         }
         public async Task FinishChatAsync(string userId, bool isSaved)
@@ -161,9 +179,16 @@ namespace HelpDeskApp.Services
             await _chatRepository.FinishChatAsync(userId, isSaved);
         }
 
-        public async Task RedirectToDifferentTopic(int chatId, string topicId)
+        public async Task RedirectToDifferentTopic(int chatId, string topicId, string moreInfo)
         {
             await _chatRepository.RedirectToDifferentTopic(chatId, topicId);
+            await _chatRepository.SetMoreInfo(chatId, moreInfo);
+
+            var topic = await _topicService.GetByIdAsync(Int32.Parse(topicId));
+
+            string message = "Redirected chat to topic: " + topic.Name;
+            await _notificationHubContext.Clients.Group($"Topic-{topicId}").SendAsync("ReceiveNotification", message, moreInfo);
+            Console.WriteLine("Notification sent to consultants.");
         }
 
         public async Task<Chat> GetChatById(int chatId)
