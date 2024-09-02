@@ -16,6 +16,8 @@ namespace HelpDeskApp.Services
         Task<IdentityUser> GetUserByIdAsync(string userId);
         Task AddUserToRolesAsync(IdentityUser user, List<string> rolesToAdd);
         Task RemoveUserFromRolesAsync(IdentityUser user, List<string> rolesToRemove);
+        Task<List<UserRoleViewModel>> GetUserRoleViewModel();
+        Task UpdateUserRoles(List<UserRoleViewModel> model);
 
     }
 }

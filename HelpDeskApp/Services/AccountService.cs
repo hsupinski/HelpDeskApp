@@ -47,6 +47,28 @@ namespace HelpDeskApp.Services
             return new List<string>(await _userManager.GetRolesAsync(user));
         }
 
+        public async Task<List<UserRoleViewModel>> GetUserRoleViewModel()
+        {
+            var userList = await GetAllAsync();
+            var model = new List<UserRoleViewModel>();
+
+            foreach (var user in userList)
+            {
+                var userRoles = await GetUserRolesAsync(user);
+
+                var userRoleViewModel = new UserRoleViewModel
+                {
+                    UserId = user.Id,
+                    UserName = user.UserName,
+                    Roles = userRoles
+                };
+
+                model.Add(userRoleViewModel);
+            }
+
+            return model;
+        }
+
         public async Task<List<IdentityUser>> GetUsersInRoleAsync(string roleName)
         {
             return new List<IdentityUser>(await _userManager.GetUsersInRoleAsync(roleName));
@@ -83,6 +105,20 @@ namespace HelpDeskApp.Services
         public async Task RemoveUserFromRolesAsync(IdentityUser user, List<string> rolesToRemove)
         {
             await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+        }
+
+        public async Task UpdateUserRoles(List<UserRoleViewModel> model)
+        {
+            foreach (var userRoleViewModel in model)
+            {
+                var user = await GetUserByIdAsync(userRoleViewModel.UserId);
+                var existingRoles = await GetUserRolesAsync(user);
+                var rolesToAdd = userRoleViewModel.Roles.Except(existingRoles);
+                var rolesToRemove = existingRoles.Except(userRoleViewModel.Roles);
+
+                await AddUserToRolesAsync(user, rolesToAdd.ToList());
+                await RemoveUserFromRolesAsync(user, rolesToRemove.ToList());
+            }
         }
     }
 }

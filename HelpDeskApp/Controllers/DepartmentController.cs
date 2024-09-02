@@ -2,9 +2,7 @@
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using HelpDeskApp.Models.ViewModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace HelpDeskApp.Controllers
 {
