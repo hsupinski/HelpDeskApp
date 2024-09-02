@@ -171,14 +171,28 @@ namespace HelpDeskApp.Repositories
             return chat.Topic;
         }
 
-        public Task<List<Chat>> GetAllChatsByTopicName(string topicName)
+        public async Task<List<Chat>> GetAllChatsByTopicName(string topicName)
         {
             // chat.Topic is a topic name
 
-            return _context.Chats
+            return await _context.Chats
                 .Include(c => c.Messages)
                 .Where(c => c.Topic == topicName)
                 .ToListAsync();
+        }
+
+        public async Task SetChatSaved(int chatId, bool isSaved)
+        {
+            var chat = await GetChatByIdAsync(chatId);
+            chat.IsSaved = isSaved;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsChatSaved(int chatId)
+        {
+            var chat = await GetChatByIdAsync(chatId);
+            return chat.IsSaved;
         }
     }
 }

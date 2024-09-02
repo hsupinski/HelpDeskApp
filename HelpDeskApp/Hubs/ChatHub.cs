@@ -124,7 +124,7 @@ namespace HelpDeskApp.Hubs
 
         }
 
-        public async Task LeaveChat(string chatId)
+        public async Task LeaveChat(string chatId, bool isChatSaved)
         {
             var user = await _accountService.GetUserByIdAsync(Context.UserIdentifier);
             var userRoles = await _accountService.GetUserRolesAsync(user);
@@ -137,6 +137,8 @@ namespace HelpDeskApp.Hubs
             if(chat.Participants.Count == 0)
             {
                 // chat is being removed, send message to consultant panel
+
+                await _chatService.SetChatSaved(Int32.Parse(chatId), isChatSaved);
 
                 var model = new JoinChatItemViewModel
                 {

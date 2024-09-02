@@ -32,6 +32,20 @@ connection.on("UserLeft", (userId, username) => {
     msg.innerHTML = `<em>${username} has left the chat.</em>`;
     messagesList.appendChild(msg);
     messagesList.scrollTop = messagesList.scrollHeight;
+
+    console.log("Userleft:", username);
+
+    const userList = document.getElementById("userList");
+    const userItems = userList.getElementsByTagName("li");
+    for (let i = 0; i < userItems.length; i++) {
+        if (userItems[i].textContent.trim() === username) {
+            console.log(userItems[i].textContent.trim());
+            // Without delay item is not removed from the list correctly
+            setTimeout(() => {
+                userList.removeChild(userItems[i]);
+            }, 100);
+        }
+    }
 });
 
 connection.on("UpdateUserList", (users) => {
@@ -63,7 +77,8 @@ document.getElementById("messageInput").addEventListener("keypress", function (e
     }
 });
 
-document.getElementById("leaveChatButton").addEventListener("click", leaveChat);
+if(document.getElementById("leaveChatButton"))
+    document.getElementById("leaveChatButton").addEventListener("click", leaveChat);
 
 const changeTopicButton = document.getElementById("changeTopicButton");
 if (changeTopicButton) {
@@ -108,7 +123,17 @@ function sendMessage(event) {
 
 function leaveChat() {
     const chatId = document.getElementById("chatId").value;
-    connection.invoke("LeaveChat", chatId)
+    let checkboxStatus = true;
+
+    if (document.getElementById("isSavedCheckbox")) {
+        const saveChatCheckbox = document.getElementById("isSavedCheckbox");
+        console.log("Checkbox checked:", saveChatCheckbox.checked);
+
+        if (!saveChatCheckbox.checked)
+            checkboxStatus = false;
+    }
+    
+    connection.invoke("LeaveChat", chatId, checkboxStatus)
         .then(() => {
             console.log("Left chat successfully");
             window.location.href = "/Home/LeaveChat";

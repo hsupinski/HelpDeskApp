@@ -23,6 +23,9 @@ connection.on("ErrorOccurred", (errorMessage) => {
 
 connection.on("NewChatCreated", (chat) => {
     console.log("Received new chat created message:", chat);
+    console.log("Is chat relevant:", isChatRelevant(chat));
+    console.log("Is chat on list:", inChatOnList(chat));
+
     if (isChatRelevant(chat)) {
         if (inChatOnList(chat)) {
             removeChatFromList(chat);
@@ -31,7 +34,9 @@ connection.on("NewChatCreated", (chat) => {
     }
 
     if (!isChatRelevant(chat) && inChatOnList(chat)) {
-        removeChatFromList(chat);
+        setTimeout(() => {
+            removeChatFromList(chat);
+        }, 100);
     }   
 });
 
@@ -58,16 +63,17 @@ function inChatOnList(chat) {
 }
 
 function removeChatFromList(chat) {
-    console.log("Removing chat from list:", chat);
+/*    console.log("Removing chat from list:", chat);
     const chatElement = document.getElementById(`chat-${chat.chatId}`);
     if (chatElement) {
         console.log("Removing chat element:", chatElement);
         chatElement.remove();
-    }
+    }*/
+    location.reload();
 }
 
 function addChatToList(chat) {
-    console.log("Adding chat to list:", chat);
+/*    console.log("Adding chat to list:", chat);
     const chatList = document.getElementById("chatList");
     const li = document.createElement("li");
     li.id = `chat-${chat.chatId}`;
@@ -82,5 +88,6 @@ function addChatToList(chat) {
         <a href="/HelpDesk/JoinChat?chatId=${chat.chatId}"
            class="btn btn-secondary btn-sm">Join Chat</a>
     `;
-    chatList.appendChild(li);
+    chatList.appendChild(li);*/
+    location.reload();
 }

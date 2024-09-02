@@ -6,5 +6,6 @@ namespace HelpDeskApp.Services
     {
         Task<List<ChatLogsInfoViewModel>> CreateChatLogsInfoViewModel(string userId);
         Task<List<LogDetailsViewModel>> GetChatLogsByChatId(int chatId);
+        Task RemoveUserLogs(string userId, int chatId);
     }
 }

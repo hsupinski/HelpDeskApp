@@ -55,9 +55,10 @@
             </div>
         </div>
         <div class="card-footer">
-            <button id="leaveChatButton" class="btn btn-danger">End Chat</button>
-            @if (User.IsInRole("Consultant"))
+            
+            @if (User.IsInRole("Consultant") || User.IsInRole("DepartmentHead") || User.IsInRole("Admin") && !User.IsInRole("User"))
             {
+                <button id="leaveChatButton" class="btn btn-danger">Leave Chat</button>
                 <div class="mt-3">
                     <select id="topicSelect" class="form-control">
                         @foreach (var topic in Model.AvailableTopics)
@@ -66,6 +67,14 @@
                         }
                     </select>
                     <button id="changeTopicButton" class="btn btn-warning mt-2">Change Topic</button>
+                </div>
+            }
+            @if(User.IsInRole("User") && !User.IsInRole("Consultant") && !User.IsInRole("DepartmentHead") && !User.IsInRole("Admin"))
+            {
+                <button id="leaveChatButton" class="btn btn-danger">End Chat</button>
+                <div class="form-check mt-3">
+                    <input type="checkbox" id="isSavedCheckbox" class="form-check-input" checked/>
+                    <label for="isSavedCheckbox" class="form-check-label">Save chat history?</label>
                 </div>
             }
         </div>

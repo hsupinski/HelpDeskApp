@@ -10,13 +10,15 @@ namespace HelpDeskApp.Services
         private readonly IChatRepository _chatRepository;
         private readonly ITopicService _topicService;
         private readonly IDepartmentService _departmentService;
+        private readonly ILogRepository _logRepository;
         public ChatService(IChatRepository chatRepository, IAccountService accountService, ITopicService topicService, 
-            IDepartmentService departmentService)
+            IDepartmentService departmentService, ILogRepository logRepository)
         {
             _chatRepository = chatRepository;
             _accountService = accountService;
             _topicService = topicService;
             _departmentService = departmentService;
+            _logRepository = logRepository;
         }
         public async Task<Chat> CreateChatAsync(string userId, int topicId)
         {
@@ -144,6 +146,14 @@ namespace HelpDeskApp.Services
 
         public async Task LeaveChatAsync(string userId)
         {
+            var chat = await _chatRepository.GetActiveChatByUserId(userId);
+            var isChatSaved = await _chatRepository.IsChatSaved(chat.Id);
+
+            if(isChatSaved == false)
+            {
+                await _logRepository.RemoveUserLogs(userId, chat.Id);
+            }
+
             await _chatRepository.LeaveChatAsync(userId);
         }
         public async Task FinishChatAsync(string userId, bool isSaved)
@@ -200,6 +210,11 @@ namespace HelpDeskApp.Services
             }
 
             return false;
+        }
+
+        public async Task SetChatSaved(int chatId, bool isSaved)
+        {
+            await _chatRepository.SetChatSaved(chatId, isSaved);
         }
     }
 }

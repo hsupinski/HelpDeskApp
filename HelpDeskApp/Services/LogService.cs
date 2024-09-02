@@ -95,5 +95,10 @@ namespace HelpDeskApp.Services
 
             return model;
         }
+
+        public async Task RemoveUserLogs(string userId, int chatId)
+        {
+            await _logRepository.RemoveUserLogs(userId, chatId);
+        }
     }
 }

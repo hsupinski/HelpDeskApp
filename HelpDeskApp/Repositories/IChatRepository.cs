@@ -18,5 +18,7 @@ namespace HelpDeskApp.Repositories
         Task<List<Chat>> GetAllOpenChats(string userId);
         Task<string> GetChatTopic(int chatId);
         Task<List<Chat>> GetAllChatsByTopicName(string topicName);
+        Task SetChatSaved(int chatId, bool isSaved);
+        Task<bool> IsChatSaved(int chatId);
     }
 }
