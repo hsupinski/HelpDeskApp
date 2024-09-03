@@ -11,19 +11,21 @@ namespace HelpDeskAppTests.TestServices
             return;
         }
 
-        public Task<TopicViewModel> CreateTopicViewModel(Topic topic)
+        public async Task<TopicViewModel> CreateTopicViewModel(Topic topic)
         {
-            throw new NotImplementedException();
+            var model = new TopicViewModel();
+            return model;
         }
 
-        public Task<List<TopicViewModel>> CreateTopicViewModelList(List<Topic> topicList)
+        public async Task<List<TopicViewModel>> CreateTopicViewModelList(List<Topic> topicList)
         {
-            throw new NotImplementedException();
+            var model = new List<TopicViewModel>();
+            return model;
         }
 
-        public Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            return;
         }
 
         public async Task DeleteTopicsWithoutDepartment()
@@ -31,14 +33,15 @@ namespace HelpDeskAppTests.TestServices
             return;
         }
 
-        public Task<List<Topic>> GetAllAsync()
+        public async Task<List<Topic>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            var model = new List<Topic>();
+            return model;
         }
 
-        public Task<Topic> GetByIdAsync(int id)
+        public async Task<Topic> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return new Topic();
         }
 
         public Task<List<Topic>> GetTopicsByDepartmentId(int departmentId)
@@ -46,9 +49,9 @@ namespace HelpDeskAppTests.TestServices
             throw new NotImplementedException();
         }
 
-        public Task UpdateAsync(Topic topic)
+        public async Task UpdateAsync(Topic topic)
         {
-            throw new NotImplementedException();
+            return;
         }
     }
 }

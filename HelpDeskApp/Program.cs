@@ -50,6 +50,18 @@ try
 
     var app = builder.Build();
 
+    using (var Scope = app.Services.CreateScope())
+    {
+        var services = Scope.ServiceProvider;
+        var context = services.GetRequiredService<HelpDeskDbContext>();
+        var authContext = services.GetRequiredService<AuthDbContext>();
+        var loggerContext = services.GetRequiredService<LoggerDbContext>();
+
+        context.Database.Migrate();
+        authContext.Database.Migrate();
+        loggerContext.Database.Migrate();
+    }
+
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
     {

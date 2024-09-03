@@ -2,7 +2,6 @@
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Models.Domain;
 
 namespace HelpDeskApp.Controllers

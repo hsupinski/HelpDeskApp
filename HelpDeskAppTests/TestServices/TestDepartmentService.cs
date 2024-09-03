@@ -65,9 +65,10 @@ namespace HelpDeskAppTests.TestServices
             throw new NotImplementedException();
         }
 
-        public Task<List<Department>> GetUserDepartments(string userId)
+        public async Task<List<Department>> GetUserDepartments(string userId)
         {
-            throw new NotImplementedException();
+            var model = new List<Department>();
+            return model;
         }
 
         public async Task UpdateAsync(Department department, string departmentHeadId)
