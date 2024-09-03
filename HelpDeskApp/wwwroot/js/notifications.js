@@ -11,16 +11,26 @@ function showNotification(message, moreInfo) {
     const notificationArea = document.getElementById("notificationArea");
     const notificationDiv = document.createElement("div");
 
-    console.log(moreInfo);
-
     notificationDiv.className = "alert alert-info alert-dismissible fade show";
+    let notificationContent = `<strong>Notification:</strong> ${message}`;
+
+    if (message.startsWith("New chat created for topic:") || message.startsWith("Redirected chat to topic:")) {
+        notificationContent += ` <a href="/HelpDesk/Panel" class="alert-link">Go to HelpDesk Panel</a>`;
+    }
+
     notificationDiv.innerHTML = `
-        <strong>Notification:</strong> ${message}
+        ${notificationContent}
         ${moreInfo ? `<br><small>${moreInfo}</small>` : ""}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
 
+
     notificationDiv.querySelector('.btn-close').addEventListener('click', () => {
+        notificationDiv.remove();
+        removeNotificationFromStorage(message, moreInfo);
+    });
+
+    notificationDiv.querySelector('.alert-link')?.addEventListener('click', () => {
         notificationDiv.remove();
         removeNotificationFromStorage(message, moreInfo);
     });
