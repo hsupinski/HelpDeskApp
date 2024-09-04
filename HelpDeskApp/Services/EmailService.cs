@@ -11,13 +11,12 @@ namespace HelpDeskApp.Services
         public EmailService(IConfiguration configuration)
         {
             _apiKey = configuration["Mailgun:ApiKey"];
-            _domain = configuration["Mailgun:Domain"];
         }
         public async Task SendEmail(string to, string subject, string body)
         {
             var options = new RestClientOptions("https://api.mailgun.net/v3")
             {
-                Authenticator = new HttpBasicAuthenticator("api", "007946f57666872c8d20087f28d3322f-2b755df8-431ac860")
+                Authenticator = new HttpBasicAuthenticator("api", _apiKey)
             };
 
             var client = new RestClient(options);
