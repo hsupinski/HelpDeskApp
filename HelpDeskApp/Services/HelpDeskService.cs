@@ -1,6 +1,5 @@
 ﻿using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
-using System.Security.Claims;
 
 namespace HelpDeskApp.Services
 {

@@ -1,7 +1,7 @@
-﻿using HelpDeskApp.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using HelpDeskApp.Models.ViewModels;
+using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
-using HelpDeskApp.Models.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HelpDeskApp.Controllers
 {
@@ -16,7 +16,7 @@ namespace HelpDeskApp.Controllers
         }
 
         public async Task<IActionResult> ManageUserRoles()
-        {         
+        {
             var model = await _accountService.GetUserRoleViewModel();
 
             ViewBag.AllRoles = await _accountService.GetAllRolesAsync();

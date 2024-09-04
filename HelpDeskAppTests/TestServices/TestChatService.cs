@@ -8,7 +8,7 @@ namespace HelpDeskAppTests.TestServices
     {
         public async Task<bool> CheckChatValidity(int chatId, string userId)
         {
-            if(chatId < 0)
+            if (chatId < 0)
             {
                 return false;
             }
@@ -37,7 +37,7 @@ namespace HelpDeskAppTests.TestServices
         {
             var chat = new Chat();
 
-            if(userId.StartsWith("1"))
+            if (userId.StartsWith("1"))
             {
                 return chat;
             }

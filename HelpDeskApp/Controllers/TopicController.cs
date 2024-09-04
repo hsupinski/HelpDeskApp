@@ -1,7 +1,7 @@
 ﻿using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HelpDeskApp.Controllers
@@ -38,7 +38,7 @@ namespace HelpDeskApp.Controllers
         public async Task<IActionResult> Create(Topic topic)
         {
             await _topicService.AddAsync(topic);
-            
+
             return RedirectToAction(nameof(Index));
         }
 

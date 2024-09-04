@@ -30,11 +30,11 @@ namespace HelpDeskApp.Hubs
             var username = await _accountService.GetUsernameById(Context.UserIdentifier);
 
 
-            if(!userRoles.Contains("Admin"))
+            if (!userRoles.Contains("Admin"))
             {
                 var chat = await _chatService.GetChatById(Int32.Parse(chatId));
 
-                if (chat.Participants.Count == 0) 
+                if (chat.Participants.Count == 0)
                 {
                     // new chat, send message to consultant panel
 
@@ -49,7 +49,7 @@ namespace HelpDeskApp.Hubs
                     foreach (var userId in await _chatService.GetUsersInChat(Int32.Parse(chatId)))
                     {
                         var _userRoles = await _accountService.GetUserRolesAsync(await _accountService.GetUserByIdAsync(userId));
-                        if(!_userRoles.Contains("Admin"))
+                        if (!_userRoles.Contains("Admin"))
                             model.usernamesInChat.Add(await _accountService.GetUsernameById(userId));
                     }
 
@@ -70,7 +70,7 @@ namespace HelpDeskApp.Hubs
 
                 ScopeContext.Clear();
 
-                
+
                 await Clients.Group(chatId).SendAsync("UserJoined", Context.UserIdentifier, username);
                 await BroadcastUserList(chatId);
             }
@@ -142,7 +142,7 @@ namespace HelpDeskApp.Hubs
 
             var chat = await _chatService.GetChatById(Int32.Parse(chatId));
 
-            if(chat.Participants.Count == 0)
+            if (chat.Participants.Count == 0)
             {
                 // chat is being removed, send message to consultant panel
 

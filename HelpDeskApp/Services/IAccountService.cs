@@ -7,7 +7,7 @@ namespace HelpDeskApp.Services
     {
         Task<IdentityResult> RegisterUserAsync(RegisterViewModel model);
         Task<SignInResult> LoginUserAsync(LoginViewModel model);
-        Task<string> GetUsernameById(string userId); 
+        Task<string> GetUsernameById(string userId);
         Task LogoutUserAsync();
         Task<List<IdentityUser>> GetAllAsync();
         Task<List<IdentityUser>> GetUsersInRoleAsync(string roleName);

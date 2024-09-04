@@ -14,7 +14,7 @@ namespace HelpDeskApp.Services
         private readonly IDepartmentService _departmentService;
         private readonly ILogRepository _logRepository;
         private readonly IHubContext<NotificationHub> _notificationHubContext;
-        public ChatService(IChatRepository chatRepository, IAccountService accountService, ITopicService topicService, 
+        public ChatService(IChatRepository chatRepository, IAccountService accountService, ITopicService topicService,
             IDepartmentService departmentService, ILogRepository logRepository, IHubContext<NotificationHub> hubContext)
         {
             _chatRepository = chatRepository;
@@ -58,7 +58,7 @@ namespace HelpDeskApp.Services
             var user = await _accountService.GetUserByIdAsync(userId);
             var userRoles = await _accountService.GetUserRolesAsync(user);
 
-            if(userRoles.Contains("Admin"))
+            if (userRoles.Contains("Admin"))
             {
                 // Don't add admin to the participant list
                 return;
@@ -93,7 +93,7 @@ namespace HelpDeskApp.Services
 
             var usernames = new List<string>();
 
-            foreach(var _userId in usersInChatroom)
+            foreach (var _userId in usersInChatroom)
             {
                 var username = await _accountService.GetUsernameById(_userId);
                 var userRoles = await _accountService.GetUserRolesAsync(await _accountService.GetUserByIdAsync(_userId));
@@ -157,7 +157,7 @@ namespace HelpDeskApp.Services
             var chat = await _chatRepository.GetActiveChatByUserId(userId);
             var isChatSaved = await _chatRepository.IsChatSaved(chat.Id);
 
-            if(isChatSaved == false)
+            if (isChatSaved == false)
             {
                 await _logRepository.RemoveUserLogs(userId, chat.Id);
             }
@@ -224,7 +224,7 @@ namespace HelpDeskApp.Services
                 topicList.AddRange(topics);
             }
 
-            if(chat.EndTime != null) // Chat is closed
+            if (chat.EndTime != null) // Chat is closed
             {
                 return false;
             }

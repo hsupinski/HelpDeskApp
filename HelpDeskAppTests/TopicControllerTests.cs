@@ -4,7 +4,6 @@ using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskAppTests.TestServices;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HelpDeskAppTests
 {

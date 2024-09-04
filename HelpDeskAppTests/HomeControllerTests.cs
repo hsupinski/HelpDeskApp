@@ -3,7 +3,6 @@ using HelpDeskApp.Controllers;
 using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskAppTests.TestServices;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HelpDeskAppTests

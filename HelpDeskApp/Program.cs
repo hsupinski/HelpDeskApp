@@ -36,12 +36,20 @@ try
     builder.Services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AuthDbContext>();
 
+    builder.Services.AddIdentityCore<IdentityUser>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = true;
+    })
+    .AddEntityFrameworkStores<AuthDbContext>()
+    .AddDefaultTokenProviders();
+
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IChatService, ChatService>();
     builder.Services.AddScoped<IDepartmentService, DepartmentService>();
     builder.Services.AddScoped<ITopicService, TopicService>();
     builder.Services.AddScoped<IHelpDeskService, HelpDeskService>();
     builder.Services.AddScoped<ILogService, LogService>();
+    builder.Services.AddScoped<IEmailService, EmailService>();
 
     builder.Services.AddScoped<IChatRepository, ChatRepository>();
     builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
@@ -53,13 +61,24 @@ try
     using (var Scope = app.Services.CreateScope())
     {
         var services = Scope.ServiceProvider;
-        var context = services.GetRequiredService<HelpDeskDbContext>();
-        var authContext = services.GetRequiredService<AuthDbContext>();
-        var loggerContext = services.GetRequiredService<LoggerDbContext>();
 
-        context.Database.Migrate();
-        authContext.Database.Migrate();
-        loggerContext.Database.Migrate();
+        try
+        {
+            var context = services.GetRequiredService<HelpDeskDbContext>();
+            var authContext = services.GetRequiredService<AuthDbContext>();
+            var loggerContext = services.GetRequiredService<LoggerDbContext>();
+
+            context.Database.Migrate();
+            authContext.Database.Migrate();
+            loggerContext.Database.Migrate();
+
+            await AuthDbContext.SeedData(services);
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "An error occurred while seeding the database.");
+        }
+
     }
 
     // Configure the HTTP request pipeline.
@@ -88,7 +107,10 @@ try
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}");
 
+    //logger.Info("Application started");
+    
     app.Run();
+
 }
 catch (Exception ex)
 {

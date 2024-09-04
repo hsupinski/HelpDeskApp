@@ -11,7 +11,7 @@ namespace HelpDeskApp.Repositories
         {
             _context = helpDeskDbContext;
         }
-        
+
         public async Task AddAsync(Topic topic)
         {
             _context.Topics.Add(topic);

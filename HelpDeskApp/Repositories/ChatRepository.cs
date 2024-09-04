@@ -43,12 +43,12 @@ namespace HelpDeskApp.Repositories
 
             var chatList = new List<Chat>();
 
-            foreach (var topic in topicList) 
+            foreach (var topic in topicList)
             {
                 var chats = _context.Chats
                     .Include(c => c.Messages)
-                    .Where(c => c.EndTime == null 
-                    && c.Participants.Any(p => p.ParticipantId == userId) 
+                    .Where(c => c.EndTime == null
+                    && c.Participants.Any(p => p.ParticipantId == userId)
                     && c.Topic.StartsWith(topic.Name))
                     .ToList();
                 chatList.AddRange(chats);

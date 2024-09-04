@@ -25,7 +25,8 @@ namespace HelpDeskApp.Repositories
             // Remove all instances of this department from the Topics table
 
             var topics = await _context.Topics.ToListAsync();
-            foreach (var topic in topics) {
+            foreach (var topic in topics)
+            {
                 topic.DepartmentIds.Remove(id);
             }
 

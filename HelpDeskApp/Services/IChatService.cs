@@ -1,6 +1,5 @@
 ﻿using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
-using Microsoft.AspNetCore.Identity;
 namespace HelpDeskApp.Services
 {
     public interface IChatService

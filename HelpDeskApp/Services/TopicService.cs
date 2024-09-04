@@ -62,12 +62,12 @@ namespace HelpDeskApp.Services
                 DepartmentNames = new List<string>()
             };
 
-            if(topic.DepartmentIds != null)
+            if (topic.DepartmentIds != null)
             {
                 foreach (var departmentId in topic.DepartmentIds)
                 {
                     var department = await _departmentService.GetByIdAsync(departmentId);
-                    if(department != null)
+                    if (department != null)
                     {
                         topicViewModel.DepartmentNames.Add(department.Name);
                     }

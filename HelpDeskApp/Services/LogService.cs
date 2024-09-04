@@ -42,11 +42,11 @@ namespace HelpDeskApp.Services
             foreach (var department in departments)
             {
                 topics = await _departmentService.GetTopicsInDepartment(department.Id);
-                foreach(var topic in topics)
+                foreach (var topic in topics)
                 {
                     chats = await _chatService.GetAllChatsByTopicName(topic.Name);
 
-                    foreach(var chat in chats)
+                    foreach (var chat in chats)
                     {
                         model.Add(new ChatLogsInfoViewModel
                         {

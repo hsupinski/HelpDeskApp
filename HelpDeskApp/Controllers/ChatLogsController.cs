@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
-using HelpDeskApp.Services;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace HelpDeskApp.Controllers

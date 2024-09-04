@@ -12,7 +12,7 @@ namespace HelpDeskApp.Services
         private readonly IAccountService _accountService;
         private readonly IDepartmentRepository _departmentRepository;
 
-        public DepartmentService(IAccountService accountService, 
+        public DepartmentService(IAccountService accountService,
             IDepartmentRepository departmentRepository, HelpDeskDbContext context)
         {
             _accountService = accountService;

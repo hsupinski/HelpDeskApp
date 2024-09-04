@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using HelpDeskApp.Models.Domain;
 
 namespace HelpDeskApp.Controllers
 {
@@ -31,7 +31,7 @@ namespace HelpDeskApp.Controllers
             var departments = await _departmentService.GetUserDepartments(userId);
             var topics = new List<Topic>();
 
-            foreach(var department in departments)
+            foreach (var department in departments)
             {
                 topics.AddRange(await _departmentService.GetTopicsInDepartment(department.Id));
             }
@@ -60,7 +60,7 @@ namespace HelpDeskApp.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var chatValidity = await _chatService.CheckChatValidity(chatId, userId);
 
-            if(chatValidity == false)
+            if (chatValidity == false)
             {
                 TempData["ErrorMessage"] = "Chat is not available";
                 return RedirectToAction("Panel");

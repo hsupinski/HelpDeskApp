@@ -1,8 +1,8 @@
 ﻿using HelpDeskApp.Models.Domain;
-using HelpDeskApp.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using HelpDeskApp.Models.ViewModels;
+using HelpDeskApp.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HelpDeskApp.Controllers
 {
@@ -32,7 +32,7 @@ namespace HelpDeskApp.Controllers
         public async Task<IActionResult> Create()
         {
             var users = await _departmentService.GetAllConsultantsAndDepartmentHeads();
-           
+
             ViewBag.Users = users;
 
             return View();

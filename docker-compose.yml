@@ -1,0 +1,65 @@
+services:
+  helpdeskapp:
+    image: ${DOCKER_REGISTRY-}helpdeskapp
+    build:
+      context: .
+      dockerfile: HelpDeskApp/Dockerfile
+    depends_on:
+      mssql:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8080:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-CU13-ubuntu-22.04
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Test2137!
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./sqlscripts:/docker-entrypoint-initdb.d
+    command:
+      - /bin/bash
+      - -c 
+      - |
+        /opt/mssql/bin/sqlservr &
+        sleep 30
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Test2137! -Q "
+        IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'db-helpdesk-logger')
+        BEGIN
+            CREATE DATABASE [db-helpdesk-logger]
+        END
+        GO
+        USE [db-helpdesk-logger]
+        GO
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ChatLogs' and xtype='U')
+        BEGIN
+            CREATE TABLE ChatLogs (
+                Id INT PRIMARY KEY IDENTITY(1,1),
+                EventTime DATETIME NOT NULL,
+                EventType NVARCHAR(50) NOT NULL,
+                UserId NVARCHAR(128) NOT NULL,
+                Content NVARCHAR(MAX) NOT NULL,
+                ChatId INT NOT NULL,
+                Topic NVARCHAR(255) NOT NULL
+            )
+        END
+        "
+        tail -f /dev/null
+
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Test2137! -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 10s
+      timeout: 3s
+volumes:
+  mssql_data:

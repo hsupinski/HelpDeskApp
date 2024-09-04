@@ -7,7 +7,7 @@ namespace HelpDeskApp.Data
     {
         public HelpDeskDbContext(DbContextOptions<HelpDeskDbContext> options) : base(options)
         {
-            
+
         }
 
         public DbSet<Chat> Chats { get; set; }

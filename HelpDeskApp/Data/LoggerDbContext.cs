@@ -7,7 +7,7 @@ namespace HelpDeskApp.Data
     {
         public LoggerDbContext(DbContextOptions<LoggerDbContext> options) : base(options)
         {
-            
+
         }
 
         public DbSet<ChatLog> ChatLogs { get; set; }

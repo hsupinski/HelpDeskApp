@@ -56,7 +56,7 @@ namespace HelpDeskAppTests.TestServices
 
         public Task<SignInResult> LoginUserAsync(LoginViewModel model)
         {
-            if(model.Username == "invalid")
+            if (model.Username == "invalid")
             {
                 return Task.FromResult(SignInResult.Failed);
             }
@@ -71,7 +71,7 @@ namespace HelpDeskAppTests.TestServices
 
         public Task<IdentityResult> RegisterUserAsync(RegisterViewModel model)
         {
-            if(model.Username == "invalid")
+            if (model.Username == "invalid")
             {
                 return Task.FromResult(IdentityResult.Failed(new IdentityError { Description = "Failed to register user" }));
             }
