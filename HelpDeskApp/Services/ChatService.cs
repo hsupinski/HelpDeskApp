@@ -155,6 +155,13 @@ namespace HelpDeskApp.Services
         public async Task LeaveChatAsync(string userId)
         {
             var chat = await _chatRepository.GetActiveChatByUserId(userId);
+
+            if(chat == null)
+            {
+                // Chat is already closed
+                return;
+            }
+
             var isChatSaved = await _chatRepository.IsChatSaved(chat.Id);
 
             if (isChatSaved == false)

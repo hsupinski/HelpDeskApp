@@ -58,7 +58,10 @@
             
             @if (User.IsInRole("Consultant") || User.IsInRole("DepartmentHead") || User.IsInRole("Admin") && !User.IsInRole("User"))
             {
-                <button id="leaveChatButton" class="btn btn-danger">Leave Chat</button>
+                <div>
+                    <button id="leaveChatButton" class="btn btn-danger">Leave Chat</button>
+                    <button id="isIssueSolvedButton" class="btn btn-dark">Is issue solved?</button>
+                </div>
                 <div class="mt-3">
                     <select id="topicSelect" class="form-control">
                         @foreach (var topic in Model.AvailableTopics)

@@ -2,6 +2,7 @@
 using HelpDeskApp.Models.Domain;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using NLog;
 
@@ -176,6 +177,60 @@ namespace HelpDeskApp.Hubs
                 await BroadcastUserList(chatId);
             }
 
+        }
+
+        public async Task IsIssueSolved(string chatId)
+        {
+            var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Asked if issue is solved");
+            logEvent.Properties["EventType"] = "IssueSolved";
+            logEvent.Properties["UserId"] = Context.UserIdentifier;
+            logEvent.Properties["ChatId"] = chatId;
+            logEvent.Properties["Topic"] = await _chatService.GetChatTopic(Int32.Parse(chatId));
+
+            _logger.Log(logEvent);
+
+            // Get user in 'user' role, in every conversation there should be only one user
+
+            var userList = await _chatService.GetUsersInChat(Int32.Parse(chatId));
+            var userId = userList.FirstOrDefault(user => _accountService.GetUserRolesAsync(
+            _accountService.GetUserByIdAsync(user).Result).Result.Contains("User"));
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                await Clients.Caller.SendAsync("ReceiveMessage", "", "No user found in chat, cannot ask if issue is solved.", "System");
+                return;
+            }
+
+            await Clients.Group(chatId).SendAsync("IssueSolvedQuestion", userId);
+
+            // Start a timer to close the chat if no response is received
+            //await CloseRoomAfterDelay(chatId, userId, TimeSpan.FromSeconds(10));
+        }
+
+        public async Task RespondToIssueSolved(string chatId, bool isSolved)
+        {
+            var logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Issue solved");
+            
+            if(isSolved)
+            {
+                logEvent.Properties["EventType"] = "IssueSolved";
+                logEvent.Properties["UserId"] = Context.UserIdentifier;
+                logEvent.Properties["ChatId"] = chatId;
+                logEvent.Properties["Topic"] = await _chatService.GetChatTopic(Int32.Parse(chatId));
+
+                await Clients.Group(chatId).SendAsync("ReceiveMessage", "", "The issue has been solved. The chat will now close.", "System");
+                await Clients.Group(chatId).SendAsync("CloseChat");
+            }
+            else
+            {
+                logEvent = new LogEventInfo(NLog.LogLevel.Info, "", "Issue not solved");
+                logEvent.Properties["EventType"] = "IssueNotSolved";
+                logEvent.Properties["UserId"] = Context.UserIdentifier;
+                logEvent.Properties["ChatId"] = chatId;
+                logEvent.Properties["Topic"] = await _chatService.GetChatTopic(Int32.Parse(chatId));
+
+                await Clients.Group(chatId).SendAsync("ReceiveMessage", "", "The issue has not been solved. The chat will continue.", "System");    
+            }
         }
 
         public async Task ChangeChatTopic(string chatId, string topicId, string moreInfo)

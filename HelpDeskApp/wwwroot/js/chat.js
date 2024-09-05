@@ -80,6 +80,9 @@ document.getElementById("messageInput").addEventListener("keypress", function (e
 if(document.getElementById("leaveChatButton"))
     document.getElementById("leaveChatButton").addEventListener("click", leaveChat);
 
+if (document.getElementById("isIssueSolvedButton"))
+    document.getElementById("isIssueSolvedButton").addEventListener("click", isIssueSolved);
+
 const changeTopicButton = document.getElementById("changeTopicButton");
 if (changeTopicButton) {
     changeTopicButton.addEventListener("click", changeTopic);
@@ -140,6 +143,50 @@ function leaveChat() {
         })
         .catch(err => console.error("Error leaving chat:", err.toString()));
 }
+
+function isIssueSolved() {
+    const chatId = document.getElementById("chatId").value;
+
+    connection.invoke("IsIssueSolved", chatId)
+        .then(() => {
+            console.log("Asked user if issue is solved");
+        })
+        .catch(err => console.error("Error asking user if issue is solved:", err.toString()));
+}
+
+connection.on("IssueSolvedQuestion", (userId) => {
+    if (document.getElementById("userId").value === userId) {
+        const alert = `
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <strong>Has the problem been solved?</strong>
+                <button type="button" class="btn btn-success btn-sm mx-2" onclick="respondToIssueSolved(true)">Yes</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="respondToIssueSolved(false)">No</button>
+            </div>
+        `;
+        const alertContainer = document.createElement('div');
+        alertContainer.innerHTML = alert;
+        document.body.insertBefore(alertContainer, document.body.firstChild);
+
+        // Close the alert if either button is clicked
+        alertContainer.querySelector('.btn-success').addEventListener('click', () => {
+            alertContainer.remove();
+        });
+        alertContainer.querySelector('.btn-danger').addEventListener('click', () => {
+            alertContainer.remove();
+        });
+    }
+});
+
+function respondToIssueSolved(isSolved) {
+    const chatId = document.getElementById("chatId").value;
+    connection.invoke("RespondToIssueSolved", chatId, isSolved)
+        .catch(err => console.error("Error responding to issue solved:", err.toString()));
+}
+
+connection.on("CloseChat", () => {
+    console.log("Close chat called");
+    leaveChat();
+});
 
 function changeTopic() {
     const chatId = document.getElementById("chatId").value;

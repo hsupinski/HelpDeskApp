@@ -129,7 +129,19 @@ namespace HelpDeskApp.Controllers
 
             else if (userRole == "Consultant")
             {
+                // Wait for 500ms to let the user leave the chat
+                await Task.Delay(500);
+
                 var userIds = await _chatService.GetUsersInChat(chat.Id);
+
+                if(userIds.Count == 1)
+                {
+                    // If consultant is the only one in the chat, leave the chat
+
+                    await _chatService.LeaveChatAsync(userId);
+                    TempData["SuccessMessage"] = "You left the chat successfully.";
+                    return RedirectToAction("Index");
+                }
 
                 // Consultant is not allowed to leave the user alone,
                 // they can only leave if there is another non-admin consultant in the chat
@@ -151,7 +163,6 @@ namespace HelpDeskApp.Controllers
 
                 if (count > 1)
                 {
-                    // Leave the chat without killing it
                     await _chatService.LeaveChatAsync(userId);
                     TempData["SuccessMessage"] = "You left the chat successfully.";
                     return RedirectToAction("Index");
