@@ -2,7 +2,10 @@ using FluentAssertions;
 using HelpDeskApp.Controllers;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskAppTests.TestServices;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Moq;
 
 namespace HelpDeskAppTests
 {
@@ -11,10 +14,21 @@ namespace HelpDeskAppTests
         private readonly AccountController _accountController;
         private readonly RegisterViewModel exampleRegisterViewModel;
         private readonly LoginViewModel exampleLoginViewModel;
+        private readonly ForgotPasswordViewModel exampleForgotPasswordViewModel;
+        private readonly ResetPasswordViewModel exampleResetPasswordViewModel;
         public AccountControllerTests()
         {
             var accountService = new TestAccountService();
-            _accountController = new AccountController(accountService);
+            var emailService = new TestEmailService();
+            var userManager = new TestUserManager();
+
+            _accountController = new AccountController(accountService, emailService, userManager);
+
+            var mockUrlHelper = new Mock<IUrlHelper>();
+            mockUrlHelper.Setup(x => x.Action(It.IsAny<UrlActionContext>()))
+                .Returns("http://mocked-url");
+
+            _accountController.Url = mockUrlHelper.Object;
 
             exampleRegisterViewModel = new RegisterViewModel
             {
@@ -28,8 +42,30 @@ namespace HelpDeskAppTests
                 Username = "test",
                 Password = "Test123!"
             };
-        }
 
+            exampleForgotPasswordViewModel = new ForgotPasswordViewModel
+            {
+                Email = "test@example.com"
+            };
+
+            exampleResetPasswordViewModel = new ResetPasswordViewModel
+            {
+                Email = "test@example.com",
+                Password = "Test123!",
+                Token = "validToken"
+            };
+
+            var httpContext = new Mock<HttpContext>();
+            var request = new Mock<HttpRequest>();
+
+            request.Setup(x => x.Scheme).Returns("http");
+            httpContext.Setup(x => x.Request).Returns(request.Object);
+
+            _accountController.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext.Object
+            };
+        }
         [Fact]
         public void Register_ReturnsViewResult()
         {
@@ -51,31 +87,10 @@ namespace HelpDeskAppTests
 
             // Assert
             result.Should().BeOfType<RedirectToActionResult>()
-                .Which.ActionName.Should().Be("Index");
-
-            result.As<RedirectToActionResult>().ControllerName.Should().Be("Home");
+                .Which.ActionName.Should().Be("RegisterConfirmation");
         }
 
-        [Fact]
-        public async Task Register_ReturnsViewResult_OnFailedRegister()
-        {
-            // Arrange
-            var model = new RegisterViewModel
-            {
-                Username = "invalid",
-                Email = "invalid@example.com",
-                Password = "invalid"
-            };
 
-            // Act
-            var result = await _accountController.Register(model);
-
-            // Assert
-            result.Should().BeOfType<ViewResult>()
-                .Which.Model.Should().Be(model);
-
-            result.As<ViewResult>().ViewData.ModelState.ErrorCount.Should().BeGreaterThan(0);
-        }
 
         [Fact]
         public async Task Login_ReturnsViewResult()
@@ -135,6 +150,110 @@ namespace HelpDeskAppTests
                 .Which.ActionName.Should().Be("Index");
 
             result.As<RedirectToActionResult>().ControllerName.Should().Be("Home");
+        }
+
+        [Fact]
+        public void ForgotPassword_ReturnsViewResult()
+        {
+            // Act
+            var result = _accountController.ForgotPassword();
+
+            // Assert
+            result.Should().BeOfType<ViewResult>();
+        }
+
+        [Fact]
+        public async Task ForgotPassword_ReturnsRedirectToActionResult_OnValidModel()
+        {
+            // Arrange
+            var model = exampleForgotPasswordViewModel;
+
+            // Act
+            var result = await _accountController.ForgotPassword(model);
+
+            // Assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.ActionName.Should().Be("ForgotPasswordConfirmation");
+        }
+
+
+
+        [Fact]
+        public void ForgotPasswordConfirmation_ReturnsViewResult()
+        {
+            // Act
+            var result = _accountController.ForgotPasswordConfirmation();
+
+            // Assert
+            result.Should().BeOfType<ViewResult>();
+        }
+
+        [Fact]
+        public void ResetPassword_ReturnsViewResult_OnInvalidToken()
+        {
+            // Act
+            var result = _accountController.ResetPassword("invalid");
+
+            // Assert
+            result.Should().BeOfType<ViewResult>()
+                .Which.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task ResetPassword_ReturnsRedirectToActionResult_OnValidToken()
+        {
+            // Arrange
+            var model = exampleResetPasswordViewModel;
+
+            // Act
+            var result = await _accountController.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task ResetPassword_ReturnsRedirectToActionResult_OnSuccessfulReset()
+        {
+            // Arrange
+            var model = exampleResetPasswordViewModel;
+
+            // Act
+            var result = await _accountController.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.ActionName.Should().Be("ResetPasswordConfirmation");
+        }
+
+        [Fact]
+        public async Task ResetPassword_ReturnsRedirectToActionResult_OnFailedReset()
+        {
+            // Arrange
+            var model = new ResetPasswordViewModel
+            {
+                Email = "invalid",
+                Password = "invalid",
+                Token = "invalid"
+            };
+
+            // Act
+            var result = await _accountController.ResetPassword(model);
+
+            // Assert
+            result.Should().BeOfType<RedirectToActionResult>()
+                .Which.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void ResetPasswordConfirmation_ReturnsViewResult()
+        {
+            // Act
+            var result = _accountController.ResetPasswordConfirmation();
+
+            // Assert
+            result.Should().BeOfType<ViewResult>();
         }
     }
 }

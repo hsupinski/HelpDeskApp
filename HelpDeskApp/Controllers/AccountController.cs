@@ -29,19 +29,17 @@ namespace HelpDeskApp.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             
-                var result = await _accountService.RegisterUserAsync(model);
+            var result = await _accountService.RegisterUserAsync(model);
 
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action("ConfirmEmail", "Account",
+                new { userId = user.Id, token = token }, Request.Scheme);
 
-                    var user = await _userManager.FindByEmailAsync(model.Email);
-                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var confirmationLink = Url.Action("ConfirmEmail", "Account",
-                        new { userId = user.Id, token = token }, Request.Scheme);
+            await _emailService.SendEmail(user.Email, "Confirm your email",
+                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(confirmationLink)}'>clicking here</a>.");
 
-                    await _emailService.SendEmail(user.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(confirmationLink)}'>clicking here</a>.");
-
-                    return RedirectToAction("RegisterConfirmation");
-
+            return RedirectToAction("RegisterConfirmation");
         }
 
         [HttpGet]
@@ -110,10 +108,6 @@ namespace HelpDeskApp.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                //if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
-                //{
-                //    return RedirectToAction("ForgotPasswordConfirmation");
-                //}
 
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var callbackUrl = Url.Action("ResetPassword", "Account",
