@@ -96,7 +96,7 @@ namespace HelpDeskApp.Controllers
 
             if (chat == null)
             {
-                return RedirectToAction("ChooseTopic");
+                return RedirectToAction("Index");
             }
 
             var model = await _chatService.CreateChatViewModel(chat, userId);
