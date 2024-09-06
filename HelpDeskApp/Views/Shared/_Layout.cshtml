@@ -11,108 +11,80 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HelpDeskApp.styles.css" asp-append-version="true" />
 </head>
+
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HelpDeskApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="d-flex align-items-center">
+    <div class="sidebar sidebar-dark sidebar-fixed border-end" id="sidebar">
+        <div class="sidebar-header border-bottom hover-effect">
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HelpDeskApp</a>
+        </div>
+        <div class="list-group list-group-flush">
+            @if (SignInManager.IsSignedIn(User))
+            {
+                
+                @if (User.IsInRole("User"))
+                {
+                    <!-- Actions Group -->
+                    <div class="sidebar-title text-uppercase fw-bold mt-3">Actions</div>
+                    <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="Home" asp-action="Chat">New Chat</a>
+                }
 
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        @if (User.IsInRole("User"))
-                        {
-                            <a class="btn me-3 bg-light text-dark"
-                               asp-area=""
-                               asp-controller="Home"
-                               asp-action="Chat">New Chat</a>
-                        }
+                
+                @if (User.IsInRole("Admin") || User.IsInRole("DepartmentHead") || User.IsInRole("Consultant"))
+                {
+                    <!-- Consultant actions Group -->
+                    <div class="sidebar-title text-uppercase fw-bold mt-3">Consultant actions</div>
+                    <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="HelpDesk" asp-action="Panel">HelpDesk Panel</a>
+                }
 
-                        @if (User.IsInRole("Admin") || (User.IsInRole("DepartmentHead") || (User.IsInRole("Consultant"))))
-                        {
-                            <a class="btn me-3 bg-light text-dark"
-                               asp-area=""
-                               asp-controller="HelpDesk"
-                               asp-action="Panel">HelpDesk Panel</a>
+                <!-- Admin actions Group -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="sidebar-title text-uppercase fw-bold mt-3">Admin actions</div>
+                    <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="ChatLogs" asp-action="Index">Chat Logs</a>
+                    <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="Admin" asp-action="ManageUserRoles">Manage Users</a>
+                    <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="Topic" asp-action="">Manage Topics</a>
+                    <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="Department" asp-action="">Manage Departments</a>
+                }
 
-                            <a class="btn me-3 bg-light text-dark"
-                               asp-area=""
-                               asp-controller="ChatLogs"
-                               asp-action="Index">Chat Logs</a>
-                        }
-
-                        @if(User.IsInRole("Admin"))
-                        {
-                            <a class="btn me-3 bg-light text-dark"
-                               asp-area=""
-                               asp-controller="Admin"
-                               asp-action="ManageUserRoles">Manage users</a>
-
-                            <a class="btn me-3 bg-light text-dark"
-                               asp-area=""
-                               asp-controller="Topic"
-                               asp-action="">Manage topics</a>
-
-                            <a class="btn me-3 bg-light text-dark"
-                               asp-area=""
-                               asp-controller="Department"
-                               asp-action="">Manage departments</a>
-                        }
-
-
-                        <a class="btn me-3 bg-light text-dark"
-                           asp-area=""
-                           asp-controller="Account"
-                           asp-action="Logout">Logout</a>
-                    }
-                    else
-                    {
-                        <a class="btn me-3 bg-light text-dark"
-                           asp-area=""
-                           asp-controller="Account"
-                           asp-action="Login">Login</a>
-
-                        <a class="btn me-3 bg-light text-dark"
-                           asp-area=""
-                           asp-controller="Account"
-                           asp-action="Register">Register</a>
-                    }
-
-                </div>
-            </div>
-        </nav>
-    </header>
+                <!-- Account Group -->
+                <div class="sidebar-title text-uppercase fw-bold mt-3">Account</div>
+                <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
+            }
+            else
+            {
+                <div class="sidebar-title text-uppercase fw-bold mt-3">Account</div>
+                <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                <a class="list-group-item list-group-item-action bg-dark text-light hover-effect" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+            }
+        </div>
+    </div>
     <div id="notificationArea" style="position: absolute; top: 70px; right: 10px; z-index: 1050;"></div>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-3 mt-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2024 - HelpDeskApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/notifications.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <link href="https://cdn.jsdelivr.net/npm/&#64;coreui/coreui@5.1.2/dist/css/coreui.min.css" rel="stylesheet" integrity="sha384-lBISJVJ49zh34fnUuAaSAyuYzQ2ioGvhm4As4Z1JFde0kVpaC1FFWD3f9adpZrdD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/&#64;coreui/coreui@5.1.2/dist/js/coreui.bundle.min.js" integrity="sha384-yoEOGIfJg9mO8eOS9dgSYBXwb2hCCE+AMiJYavhAofzm8AoyVE241kjON695K1v5" crossorigin="anonymous"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+<style>
+    .hover-effect:hover {
+        background-color: #495057 !important;
+        transition: background-color 0.3s ease;
+    }
+
+    .sidebar-title {
+        padding-left: 1rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.25rem;
+    }
+</style>
