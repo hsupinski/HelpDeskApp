@@ -1,4 +1,5 @@
 using HelpDeskApp.Models;
+using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +38,13 @@ namespace HelpDeskApp.Controllers
             {
                 return RedirectToAction("ChooseTopic");
             }
+
+            /*var model = new ConsultantInfoViewModel
+            {
+                DepartmentList = await _topicService.GetDepartmentsAsync(),
+                TopicList = await _topicService.GetByIdAsync()
+            }*/
+            
 
             return View();
 

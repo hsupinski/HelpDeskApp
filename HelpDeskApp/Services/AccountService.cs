@@ -1,4 +1,5 @@
-﻿using HelpDeskApp.Models.ViewModels;
+﻿using HelpDeskApp.Models.Domain;
+using HelpDeskApp.Models.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,7 +20,6 @@ namespace HelpDeskApp.Services
         {
             await _userManager.AddToRolesAsync(user, rolesToAdd);
         }
-
         public async Task<List<IdentityUser>> GetAllAsync()
         {
             return await _userManager.Users.ToListAsync();

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -30,6 +30,7 @@
   
   <ItemGroup>
     <Watch Remove="Hubs\NotificationHub.cs" />
+    <Watch Remove="Models\ViewModels\ConsultantInfoViewModel.cs" />
     <Watch Remove="Models\ViewModels\ForgotPasswordViewModel.cs" />
     <Watch Remove="Models\ViewModels\ResetPasswordViewModel.cs" />
     <Watch Remove="Services\EmailService.cs" />

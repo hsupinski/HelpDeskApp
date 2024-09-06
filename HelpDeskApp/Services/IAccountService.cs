@@ -18,6 +18,5 @@ namespace HelpDeskApp.Services
         Task RemoveUserFromRolesAsync(IdentityUser user, List<string> rolesToRemove);
         Task<List<UserRoleViewModel>> GetUserRoleViewModel();
         Task UpdateUserRoles(List<UserRoleViewModel> model);
-
     }
 }
