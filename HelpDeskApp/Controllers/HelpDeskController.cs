@@ -58,12 +58,18 @@ namespace HelpDeskApp.Controllers
         public async Task<IActionResult> JoinChat(int chatId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var chatValidity = await _chatService.CheckChatValidity(chatId, userId);
+            var user = await _accountService.GetUserByIdAsync(userId);
+            var userRoles = await _accountService.GetUserRolesAsync(user);
 
-            if (chatValidity == false)
+            if (!userRoles.Contains("Admin"))
             {
-                TempData["ErrorMessage"] = "Chat is not available";
-                return RedirectToAction("Panel");
+                var chatValidity = await _chatService.CheckChatValidity(chatId, userId);
+
+                if (chatValidity == false)
+                {
+                    TempData["ErrorMessage"] = "Chat is not available";
+                    return RedirectToAction("Panel");
+                }
             }
 
             await _chatService.JoinChatAsConsultant(chatId, userId);
