@@ -19,12 +19,16 @@
 <h2 class="mb-4">Choose a Topic for Your Chat</h2>
 
 <form asp-action="CreateChat" method="post">
-    <div class="list-group">
-        @foreach (var topic in Model)
-        {
-            <button type="submit" name="topicId" value="@topic.Id" class="list-group-item list-group-item-action">
-                @topic.Name
-            </button>
-        }
+    <div class="card">
+        <div class="card-body">
+            <div class="list-group">
+                @foreach (var topic in Model)
+                {
+                    <button type="submit" name="topicId" value="@topic.Id" class="list-group-item list-group-item-action">
+                        @topic.Name
+                    </button>
+                }
+            </div>
+        </div>
     </div>
 </form>
