@@ -1,8 +1,10 @@
 ﻿using HelpDeskApp.Models.ViewModels;
 using HelpDeskApp.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Encodings.Web;
+using TwoFactorAuthNet;
 
 namespace HelpDeskApp.Controllers
 {
@@ -11,12 +13,16 @@ namespace HelpDeskApp.Controllers
         private readonly IAccountService _accountService;
         private readonly IEmailService _emailService;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly TwoFactorAuth _tfa;
 
-        public AccountController(IAccountService accountService, IEmailService emailService, UserManager<IdentityUser> userManager)
+        public AccountController(IAccountService accountService, IEmailService emailService, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
             _accountService = accountService;
             _emailService = emailService;
             _userManager = userManager;
+            _tfa = new TwoFactorAuth("HelpDeskApp");
+            _signInManager = signInManager;
         }
 
         [HttpGet]
@@ -83,15 +89,31 @@ namespace HelpDeskApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await _accountService.LoginUserAsync(model);
+                var user = await _userManager.FindByNameAsync(model.Username);
 
-                if (result.Succeeded)
+                if(user != null)
                 {
-                    return RedirectToAction("Index", "Home");
-                }
+                    var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
 
-                ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+                    if(result.RequiresTwoFactor)
+                    {
+                        if (await _userManager.GetTwoFactorEnabledAsync(user) && await _userManager.IsInRoleAsync(user, "Admin"))
+                        {
+                            return RedirectToAction(nameof(VerifyTwoFactor));
+                        }
+                    }
+                    else if(result.Succeeded)
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+                    }
+                }
             }
+
+            Console.WriteLine("Invalid ModelState");
 
             return View(model);
         }
@@ -177,6 +199,86 @@ namespace HelpDeskApp.Controllers
         {
             await _accountService.LogoutUserAsync();
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EnableTwoFactor()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            var secret = _tfa.CreateSecret(160);
+            await _userManager.SetAuthenticationTokenAsync(user, "HelpDeskApp", "Secret", secret);
+
+            var qrCodeData = _tfa.GetQrCodeImageAsDataUri(user.Email, secret);
+            //ViewBag.QrCodeData = qrCodeData;
+
+            var model = new TwoFactorViewModel
+            {
+                QrCodeData = qrCodeData
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EnableTwoFactor(TwoFactorViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            var secret = await _userManager.GetAuthenticationTokenAsync(user, "HelpDeskApp", "Secret");
+            var isValid = _tfa.VerifyCode(secret, model.VerificationCode);
+
+            if (isValid)
+            {
+                await _userManager.SetTwoFactorEnabledAsync(user, true);
+                TempData["SuccessMessage"] = "Two-factor authentication has been enabled.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            TempData["ErrorMessage"] = "Verification code is invalid";
+            ModelState.AddModelError(string.Empty, "Verification code is invalid");
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult VerifyTwoFactor()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VerifyTwoFactor(TwoFactorViewModel model)
+        {
+            var verificationCode = model.VerificationCode;
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            var secret = await _userManager.GetAuthenticationTokenAsync(user, "HelpDeskApp", "Secret");
+            var isValid = _tfa.VerifyCode(secret, verificationCode);
+
+            if (isValid)
+            {
+                await _signInManager.SignInAsync(user, false);
+                TempData["SuccessMessage"] = "You have successfully logged in.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            TempData["ErrorMessage"] = "Verification code is invalid";
+            ModelState.AddModelError(string.Empty, "Verification code is invalid");
+            return View();
         }
     }
 }

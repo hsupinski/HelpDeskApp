@@ -22,6 +22,7 @@
     <PackageReference Include="NLog.Database" Version="5.3.3" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.12" />
     <PackageReference Include="RestSharp" Version="112.0.0" />
+    <PackageReference Include="TwoFactorAuth.Net" Version="1.4.0" />
   </ItemGroup>
   
   <ItemGroup>
@@ -32,6 +33,7 @@
     <Watch Remove="Hubs\NotificationHub.cs" />
     <Watch Remove="Models\ViewModels\ForgotPasswordViewModel.cs" />
     <Watch Remove="Models\ViewModels\ResetPasswordViewModel.cs" />
+    <Watch Remove="Models\ViewModels\TwoFactorViewModel.cs" />
     <Watch Remove="Services\EmailService.cs" />
     <Watch Remove="Services\IEmailService.cs" />
   </ItemGroup>

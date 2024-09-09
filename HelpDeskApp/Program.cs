@@ -41,7 +41,12 @@ try
         options.SignIn.RequireConfirmedAccount = true;
     })
     .AddEntityFrameworkStores<AuthDbContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("HelpDeskApp");
+
+/*    builder.Services.AddIdentityCore<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+        .AddEntityFrameworkStores<AuthDbContext>()
+        .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>(TokenOptions.DefaultProvider);*/
 
     builder.Services.AddScoped<IAccountService, AccountService>();
     builder.Services.AddScoped<IChatService, ChatService>();

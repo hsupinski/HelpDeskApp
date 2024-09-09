@@ -1,0 +1,53 @@
+﻿@model HelpDeskApp.Models.ViewModels.TwoFactorViewModel
+
+@{
+    ViewData["Title"] = "Enable Two-Factor Authentication";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Enable Two-Factor Authentication</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Scan the QR code below using your authenticator app, and then enter the verification code.</p>
+                    <div class="text-center my-3">
+                        <img src="@Model.QrCodeData" alt="QR Code" class="img-fluid">
+                    </div>
+                    <form method="post" asp-action="EnableTwoFactor">
+                        <div class="form-group mb-3">
+                            <label for="verificationCode">Verification Code</label>
+                            <input type="hidden" id="QrCodeData" name="QrCodeData"
+                                value="@Model.QrCodeData" />
+                            <input type="text" class="form-control" id="verificationCode" name="verificationCode" required />
+                            <span asp-validation-for="VerificationCode" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Enable Two-Factor Authentication</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

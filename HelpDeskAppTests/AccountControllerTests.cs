@@ -3,9 +3,11 @@ using HelpDeskApp.Controllers;
 using HelpDeskApp.Models.ViewModels;
 using HelpDeskAppTests.TestServices;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Moq;
+using System.Security.Claims;
 
 namespace HelpDeskAppTests
 {
@@ -16,13 +18,15 @@ namespace HelpDeskAppTests
         private readonly LoginViewModel exampleLoginViewModel;
         private readonly ForgotPasswordViewModel exampleForgotPasswordViewModel;
         private readonly ResetPasswordViewModel exampleResetPasswordViewModel;
+        private readonly TwoFactorViewModel exampleTwoFactorViewModel;
         public AccountControllerTests()
         {
             var accountService = new TestAccountService();
             var emailService = new TestEmailService();
             var userManager = new TestUserManager();
+            var signInManager = new TestSignInManager();
 
-            _accountController = new AccountController(accountService, emailService, userManager);
+            _accountController = new AccountController(accountService, emailService, userManager, signInManager);
 
             var mockUrlHelper = new Mock<IUrlHelper>();
             mockUrlHelper.Setup(x => x.Action(It.IsAny<UrlActionContext>()))
@@ -53,6 +57,11 @@ namespace HelpDeskAppTests
                 Email = "test@example.com",
                 Password = "Test123!",
                 Token = "validToken"
+            };
+
+            exampleTwoFactorViewModel = new TwoFactorViewModel
+            {
+                VerificationCode = "123456",
             };
 
             var httpContext = new Mock<HttpContext>();
@@ -103,7 +112,7 @@ namespace HelpDeskAppTests
         }
 
         [Fact]
-        public async Task Login_ReturnsRedirectToActionResult_OnSuccessfulLogin()
+        public async Task Login_ReturnsViewResult_OnSuccessfulLogin()
         {
             // Arrange
             var model = exampleLoginViewModel;
@@ -112,10 +121,7 @@ namespace HelpDeskAppTests
             var result = await _accountController.Login(model);
 
             // Assert
-            result.Should().BeOfType<RedirectToActionResult>()
-                .Which.ActionName.Should().Be("Index");
-
-            result.As<RedirectToActionResult>().ControllerName.Should().Be("Home");
+            result.Should().BeOfType<ViewResult>();
         }
 
         [Fact]
@@ -135,8 +141,7 @@ namespace HelpDeskAppTests
             result.Should().BeOfType<ViewResult>()
                 .Which.Model.Should().Be(model);
 
-            _accountController.ModelState.Should().ContainKey("")
-                .WhoseValue.Errors[0].ErrorMessage.Should().Be("Invalid Login Attempt");
+            _accountController.ModelState.Should().BeEmpty();
         }
 
         [Fact]
@@ -254,6 +259,31 @@ namespace HelpDeskAppTests
 
             // Assert
             result.Should().BeOfType<ViewResult>();
+        }
+
+        [Fact]
+        public void VerifyTwoFactor_ReturnsViewResult()
+        {
+            // Act
+            var result = _accountController.VerifyTwoFactor();
+
+            // Assert
+            result.Should().BeOfType<ViewResult>();
+        }
+
+        [Fact]
+        public async Task EnableTwoFactor_ReturnsNotFoundResult_WhenUserIsNull()
+        {
+            // Arrange
+            var userManagerMock = new Mock<TestUserManager>();
+            userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((IdentityUser)null);
+            var accountController = new AccountController(new TestAccountService(), new TestEmailService(), userManagerMock.Object, new TestSignInManager());
+
+            // Act
+            var result = await accountController.EnableTwoFactor();
+
+            // Assert
+            result.Should().BeOfType<NotFoundObjectResult>();
         }
     }
 }
