@@ -5,6 +5,7 @@ using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
+using Serilog.Context;
 
 
 namespace HelpDeskApp.Hubs
@@ -14,7 +15,7 @@ namespace HelpDeskApp.Hubs
         private readonly HelpDeskDbContext _context;
         private readonly IAccountService _accountService;
         private readonly IChatService _chatService;
-        //private readonly NLog.ILogger _logger = LogManager.GetCurrentClassLogger();
+        
 
         public ChatHub(HelpDeskDbContext helpDeskDbContext, IAccountService accountService, IChatService chatService)
         {
@@ -59,8 +60,12 @@ namespace HelpDeskApp.Hubs
                     Console.WriteLine("New chat created, sent to consultant panel.");
                 }
 
-                Log.Information("User joined chat", new { UserId = Context.UserIdentifier, ChatId = chatId, Topic = await _chatService.GetChatTopic(Int32.Parse(chatId)) });
-
+                using (LogContext.PushProperty("UserId", Context.UserIdentifier))
+                using (LogContext.PushProperty("ChatId", chatId))
+                using (LogContext.PushProperty("Topic", await _chatService.GetChatTopic(Int32.Parse(chatId))))
+                {
+                    Log.Information("User joined chat");
+                }
 
                 await Clients.Group(chatId).SendAsync("UserJoined", Context.UserIdentifier, username);
                 await BroadcastUserList(chatId);
@@ -97,12 +102,16 @@ namespace HelpDeskApp.Hubs
                     Chat = chat
                 };
 
-                Log.Information("Message sent", new { UserId = userId, ChatId = chatId, Topic = await _chatService.GetChatTopic(chatIdAsInt), Content = message });
+                using (LogContext.PushProperty("UserId", userId))
+                using (LogContext.PushProperty("ChatId", chatId))
+                using (LogContext.PushProperty("Topic", await _chatService.GetChatTopic(chatIdAsInt)))
+                using (LogContext.PushProperty("Content", message))
+                {
+                    Log.Information("Message sent");
+                }
 
                 _context.Messages.Add(newMessage);
                 await _context.SaveChangesAsync();
-
-                Console.WriteLine("Message saved to database successfully.");
 
                 await Clients.Group(chatIdAsInt.ToString()).SendAsync("ReceiveMessage", userId, message, username);
                 await BroadcastUserList(chatId);
@@ -148,7 +157,12 @@ namespace HelpDeskApp.Hubs
 
             if (!userRoles.Contains("Admin"))
             {
-                Log.Information("User left chat", new { UserId = Context.UserIdentifier, ChatId = chatId, Topic = await _chatService.GetChatTopic(Int32.Parse(chatId)) });
+                using (LogContext.PushProperty("UserId", Context.UserIdentifier))
+                using (LogContext.PushProperty("ChatId", chatId))
+                using (LogContext.PushProperty("Topic", await _chatService.GetChatTopic(Int32.Parse(chatId))))
+                {
+                    Log.Information("User left chat");
+                }
 
                 await Clients.Group(chatId).SendAsync("UserLeft", Context.UserIdentifier, username);
                 await BroadcastUserList(chatId);
@@ -158,7 +172,12 @@ namespace HelpDeskApp.Hubs
 
         public async Task IsIssueSolved(string chatId)
         {
-            Log.Information("Asked if issue is solved", new { UserId = Context.UserIdentifier, ChatId = chatId, Topic = await _chatService.GetChatTopic(Int32.Parse(chatId)) });
+            using (LogContext.PushProperty("UserId", Context.UserIdentifier))
+            using (LogContext.PushProperty("ChatId", chatId))
+            using (LogContext.PushProperty("Topic", await _chatService.GetChatTopic(Int32.Parse(chatId))))
+            {
+                Log.Information("Asked if issue is solved");
+            }
 
             var userList = await _chatService.GetUsersInChat(Int32.Parse(chatId));
             var userId = userList.FirstOrDefault(user => _accountService.GetUserRolesAsync(
@@ -178,14 +197,24 @@ namespace HelpDeskApp.Hubs
         {        
             if(isSolved)
             {
-                Log.Information("Issue solved", new { UserId = Context.UserIdentifier, ChatId = chatId, Topic = await _chatService.GetChatTopic(Int32.Parse(chatId)) });
+                using (LogContext.PushProperty("UserId", Context.UserIdentifier))
+                using (LogContext.PushProperty("ChatId", chatId))
+                using (LogContext.PushProperty("Topic", await _chatService.GetChatTopic(Int32.Parse(chatId))))
+                {
+                    Log.Information("Issue solved");
+                }
 
                 await Clients.Group(chatId).SendAsync("ReceiveMessage", "", "The issue has been solved. The chat will now close.", "System");
                 await Clients.Group(chatId).SendAsync("CloseChat");
             }
             else
             {
-                Log.Information("Issue not solved", new { UserId = Context.UserIdentifier, ChatId = chatId, Topic = await _chatService.GetChatTopic(Int32.Parse(chatId)) });
+                using (LogContext.PushProperty("UserId", Context.UserIdentifier))
+                using (LogContext.PushProperty("ChatId", chatId))
+                using (LogContext.PushProperty("Topic", await _chatService.GetChatTopic(Int32.Parse(chatId))))
+                {
+                    Log.Information("Issue not solved");
+                }
 
                 await Clients.Group(chatId).SendAsync("ReceiveMessage", "", "The issue has not been solved. The chat will continue.", "System");    
             }
@@ -197,7 +226,12 @@ namespace HelpDeskApp.Hubs
 
             var topicName = await _chatService.GetChatTopic(Int32.Parse(chatId));
 
-            Log.Information("Chat topic changed", new { UserId = Context.UserIdentifier, ChatId = chatId, Topic = topicName });
+            using (LogContext.PushProperty("UserId", Context.UserIdentifier))
+            using (LogContext.PushProperty("ChatId", chatId))
+            using (LogContext.PushProperty("Topic", topicName))
+            {
+                Log.Information("Chat topic changed");
+            }
 
 
             var model = new JoinChatItemViewModel

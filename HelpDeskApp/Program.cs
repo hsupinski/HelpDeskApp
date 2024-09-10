@@ -13,7 +13,6 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "HelpDeskApp")
     .MinimumLevel.Information()
-    .WriteTo.Console()
     .WriteTo.GrafanaLoki(
         "http://loki:3100",
         new[] { new LokiLabel { Key = "app", Value = "helpdeskapp" } },
@@ -21,11 +20,23 @@ Log.Logger = new LoggerConfiguration()
         batchPostingLimit: 1000,
         queueLimit: 100000,
         period: TimeSpan.FromSeconds(2),
-        textFormatter: new Serilog.Formatting.Json.JsonFormatter()
+        textFormatter: new Serilog.Formatting.Json.JsonFormatter(renderMessage: true)
     )
     .CreateLogger();
 
-builder.Host.UseSerilog();
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.GrafanaLoki(
+        "http://loki:3100",
+        new[] { new LokiLabel { Key = "app", Value = "helpdeskapp" } },
+        credentials: null,
+        batchPostingLimit: 1000,
+        queueLimit: 100000,
+        period: TimeSpan.FromSeconds(2),
+        textFormatter: new Serilog.Formatting.Json.JsonFormatter(renderMessage: true)
+));
 
 // Add services to the container.
 builder.Services.AddSignalR(options =>
@@ -73,6 +84,17 @@ builder.Services.AddScoped<ITopicRepository, TopicRepository>();
 builder.Services.AddScoped<ILogRepository, LogRepository>();
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging(options =>
+{
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+        diagnosticContext.Set("RequestProtocol", httpContext.Request.Protocol);
+    };
+});
 
 using (var Scope = app.Services.CreateScope())
 {
