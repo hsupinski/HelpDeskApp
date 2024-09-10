@@ -7,14 +7,65 @@ services:
     depends_on:
       - mssql
       - papercut
+      - loki 
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Smtp:Server=papercut
       - Smtp:Port=25
+      - Loki__Url=http://loki:3100
     ports:
       - "8080:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - loki_network
+
+  loki:
+    image: grafana/loki:2.9.2
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/loki
+    networks:
+      - loki_network
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - loki_network
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy 
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - loki_network
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-CU13-ubuntu-22.04
@@ -56,6 +107,8 @@ services:
         END
         "
         tail -f /dev/null
+    networks:
+      - loki_network
 
   papercut:
     image: changemakerstudiosus/papercut-smtp:latest
@@ -63,5 +116,11 @@ services:
     ports:
       - "8081:80"  # Web UI port
       - "25:25"    # SMTP port
+
 volumes:
   mssql_data:
+  loki-data:
+  
+networks:
+  loki_network:
+    driver: bridge  

@@ -3,34 +3,38 @@
 <h2 class="mb-4">Manage User Roles</h2>
 
 <form asp-action="ManageUserRoles" method="post">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Username</th>
-                @foreach (var role in ViewBag.AllRoles)
-                {
-                    <th>@role</th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Count; i++)
-            {
-                <tr>
-                    <td>
-                        @Model[i].UserName
-                        <input type="hidden" name="[@i].UserId" value="@Model[i].UserId" />
-                        <input type="hidden" name="[@i].UserName" value="@Model[i].UserName" />
-                    </td>
-                    @foreach (var role in ViewBag.AllRoles)
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        @foreach (var role in ViewBag.AllRoles)
+                        {
+                            <th>@role</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Count; i++)
                     {
-                        <td>
-                            <input type="checkbox" name="[@i].Roles" value="@role" @(Model[i].Roles.Contains(role) ? "checked" : "") />
-                        </td>
+                        <tr>
+                            <td>
+                                @Model[i].UserName
+                                <input type="hidden" name="[@i].UserId" value="@Model[i].UserId" />
+                                <input type="hidden" name="[@i].UserName" value="@Model[i].UserName" />
+                            </td>
+                            @foreach (var role in ViewBag.AllRoles)
+                            {
+                                <td>
+                                    <input type="checkbox" name="[@i].Roles" value="@role" @(Model[i].Roles.Contains(role) ? "checked" : "") />
+                                </td>
+                            }
+                        </tr>
                     }
-                </tr>
-            }
-        </tbody>
-    </table>
-    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </div>
 </form>
