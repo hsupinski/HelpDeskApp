@@ -2,6 +2,7 @@ using HelpDeskApp.Models;
 using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Diagnostics;
 using System.Security.Claims;
 
@@ -24,6 +25,7 @@ namespace HelpDeskApp.Controllers
 
         public async Task<IActionResult> Index()
         {
+            Log.Information("Index page visited.");
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var activeChat = await _chatService.GetActiveChatByUserId(userId);
             var userRole = User.FindFirstValue(ClaimTypes.Role);
@@ -45,6 +47,7 @@ namespace HelpDeskApp.Controllers
 
         public async Task<IActionResult> ChooseTopic()
         {
+            Log.Information("ChooseTopic page visited.");
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
             if (userRole != "User")
@@ -64,6 +67,7 @@ namespace HelpDeskApp.Controllers
 
         public async Task<IActionResult> CreateChat(int topicId)
         {
+            Log.Information("CreateChat called.");
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
             if (userRole != "User")
@@ -78,6 +82,7 @@ namespace HelpDeskApp.Controllers
 
         public async Task<IActionResult> JoinChat(int chatId)
         {
+            Log.Information("JoinChat called.");
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
@@ -106,7 +111,7 @@ namespace HelpDeskApp.Controllers
 
         public async Task<IActionResult> LeaveChat()
         {
-            Console.WriteLine("LeaveChat called.");
+            Log.Information("LeaveChat called.");
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userRole = User.FindFirstValue(ClaimTypes.Role);
@@ -125,6 +130,7 @@ namespace HelpDeskApp.Controllers
                 await _chatService.LeaveChatAsync(userId);
 
                 TempData["SuccessMessage"] = "Chat closed successfully.";
+                Log.Information("User left the chat.");
             }
 
             else if (userRole == "Consultant")
@@ -140,6 +146,7 @@ namespace HelpDeskApp.Controllers
 
                     await _chatService.LeaveChatAsync(userId);
                     TempData["SuccessMessage"] = "You left the chat successfully.";
+                    Log.Information("Consultant left the chat.");
                     return RedirectToAction("Index");
                 }
 
@@ -165,12 +172,14 @@ namespace HelpDeskApp.Controllers
                 {
                     await _chatService.LeaveChatAsync(userId);
                     TempData["SuccessMessage"] = "You left the chat successfully.";
+                    Log.Information("Consultant left the chat.");
                     return RedirectToAction("Index");
                 }
 
                 else
                 {
                     TempData["ErrorMessage"] = "You cannot leave the user alone.";
+                    Log.Information("Consultant tried to leave the chat but there is no other consultant.");
                     return RedirectToAction("Chat", new { chatId = chat.Id });
                 }
             }
@@ -179,6 +188,7 @@ namespace HelpDeskApp.Controllers
             {
                 // Leave chat silently
                 await _chatService.LeaveChatAsync(userId);
+                Log.Information("Admin left the chat.");
                 TempData["SuccessMessage"] = "You left the chat successfully.";
             }
 

@@ -3,6 +3,7 @@ using HelpDeskApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Text.Encodings.Web;
 using TwoFactorAuthNet;
 
@@ -28,13 +29,15 @@ namespace HelpDeskApp.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            Log.Information("Register page entered");
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            
+            Log.Information("Registering user");
+
             var result = await _accountService.RegisterUserAsync(model);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
@@ -58,12 +61,14 @@ namespace HelpDeskApp.Controllers
         [HttpGet]
         public IActionResult Login()
         {
+            Log.Information("Login page entered");
             return View();
         }
 
         [HttpGet]
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
+            Log.Information("Confirming email");
             if (userId == null || token == null)
             {
                 return RedirectToAction("Index", "Home");
@@ -78,15 +83,20 @@ namespace HelpDeskApp.Controllers
             var result = await _userManager.ConfirmEmailAsync(user, token);
             if (!result.Succeeded)
             {
+                Log.Information($"Error confirming email for user with ID '{userId}':");
                 throw new InvalidOperationException($"Error confirming email for user with ID '{userId}':");
             }
 
+            Log.Information($"Email confirmed for user with ID '{userId}'.");
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+
+            Log.Information("Logging in user");
+
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByNameAsync(model.Username);
@@ -121,12 +131,14 @@ namespace HelpDeskApp.Controllers
         [HttpGet]
         public IActionResult ForgotPassword()
         {
+            Log.Information("Forgot password page entered");
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
+            Log.Information("Forgot password");
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
@@ -153,6 +165,7 @@ namespace HelpDeskApp.Controllers
         [HttpGet]
         public IActionResult ResetPassword(string token = null)
         {
+            Log.Information("Reset password page entered");
             if (token == null)
             {
                 return BadRequest("A code must be supplied for password reset.");
@@ -167,6 +180,7 @@ namespace HelpDeskApp.Controllers
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            Log.Information("Resetting password");
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -197,6 +211,7 @@ namespace HelpDeskApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
+            Log.Information("Logging out user");
             await _accountService.LogoutUserAsync();
             return RedirectToAction("Index", "Home");
         }
@@ -205,6 +220,7 @@ namespace HelpDeskApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EnableTwoFactor()
         {
+            Log.Information("Enabling two-factor authentication");
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -253,6 +269,7 @@ namespace HelpDeskApp.Controllers
         [HttpGet]
         public IActionResult VerifyTwoFactor()
         {
+            Log.Information("Verifying two-factor authentication");
             return View();
         }
 
